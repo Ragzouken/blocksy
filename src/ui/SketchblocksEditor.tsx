@@ -1,10 +1,11 @@
-import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector3, Clock, Vector2, Euler, Material, CanvasTexture, ClampToEdgeWrapping, NearestFilter, MeshBasicMaterial, Mesh, Raycaster, BoxBufferGeometry, Object3D, PlaneBufferGeometry, CubeGeometry, GridHelper, AmbientLight, DirectionalLight } from 'three';
+import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector3, Clock, Vector2, Euler, Material, CanvasTexture, ClampToEdgeWrapping, NearestFilter, MeshBasicMaterial, Mesh, Raycaster, BoxBufferGeometry, Object3D, PlaneBufferGeometry, CubeGeometry, GridHelper, AmbientLight, DirectionalLight, Texture } from 'three';
 import { getElement, randomInt, rgb2num } from '../tools/utility';
 import { BlockDesignTest } from '../data/BlockDesignTest';
 import { MTexture } from '../tools/MTexture';
 import { BlockShape } from '../data/Blocks';
 import { makeRandomStage } from '../data/Stage';
 import StageView from './StageView';
+import FlicksyEditor from './FlicksyEditor';
 
 class PivotCamera
 {
@@ -56,6 +57,7 @@ export default class SketchblocksEditor
 
     public block = 0;
 
+    public testTexture: CanvasTexture;
     public testMaterial: Material;
     public testBlockDesigns: BlockDesignTest[] = [];
 
@@ -69,7 +71,7 @@ export default class SketchblocksEditor
     private cursorPosition = new Vector3(0, 0, 0);
     private placePosition = new Vector3(0, 0, 0);
 
-    public constructor()
+    public constructor(readonly editor2: FlicksyEditor)
     {
         //
         this.clock = new Clock();
@@ -139,14 +141,14 @@ export default class SketchblocksEditor
             return colors[(i + randomInt(0, 1)) % colors.length];
         });
 
-        const texture = new CanvasTexture(mtexture.canvas, 
+        this.testTexture = new CanvasTexture(mtexture.canvas, 
                                           undefined, 
                                           ClampToEdgeWrapping,
                                           ClampToEdgeWrapping, 
                                           NearestFilter, 
                                           NearestFilter);
 
-        this.testMaterial = new MeshBasicMaterial({ color: 0xffffff, map: texture });
+        this.testMaterial = new MeshBasicMaterial({ color: 0xffffff, map: this.testTexture });
 
         // designs
         const cube = new BlockShape();

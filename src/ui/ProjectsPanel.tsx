@@ -41,8 +41,8 @@ export default class ProjectsPanel implements Panel
 
         const sidebar = <>
             <div className="section">
-                <h1>flicksy</h1>
-                <p>a tool for drawing and assembling graphical hypertext games</p>
+                <h1>blocksy</h1>
+                <p>a tool for drawing and assembling 3d worlds</p>
                 <h2>getting started</h2>    
                 <ol>
                     <li>create some drawings in the <em>drawings</em> tab above</li>

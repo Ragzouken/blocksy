@@ -9,6 +9,7 @@ import * as utility from '../tools/utility';
 import FlicksyEditor from './FlicksyEditor';
 import Panel from './Panel';
 import PositionedDrawingView from './PositionedDrawingView';
+import { CanvasTexture, ClampToEdgeWrapping, NearestFilter } from 'three';
 
 export type PinnedDrawingView = PositionedDrawingView<PinnedDrawing>;
 
@@ -249,6 +250,14 @@ export default class DrawingBoardsPanel implements Panel
         if (pin)
         {
             this.drawingNameInput.value = pin.drawing.name;
+
+            const texture = new CanvasTexture(pin.drawing.texture.canvas,undefined, 
+                ClampToEdgeWrapping,
+                ClampToEdgeWrapping, 
+                NearestFilter, 
+                NearestFilter);
+            (this.editor.sketchblocks.testMaterial as any).map = texture;
+            texture.needsUpdate = true;
         }
     }
 

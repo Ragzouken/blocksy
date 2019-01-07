@@ -32,6 +32,9 @@ export default class FlicksyEditor
     private readonly pixiCanvasContainer: HTMLElement;
     private readonly saveButton: HTMLButtonElement;
 
+    private readonly pixiCanvas: HTMLCanvasElement;
+    private readonly threeCanvas: HTMLCanvasElement;
+
     public constructor(private sidebarContainer: HTMLElement,
                        private canvasContainer: HTMLElement,
                        public resolution: [number, number])
@@ -45,6 +48,11 @@ export default class FlicksyEditor
         this.canvasContainer.appendChild(this.pixi.view);
         this.pixi.start();
 
+        this.sketchblocks = new SketchblocksEditor(this);
+
+        this.pixiCanvas = this.pixi.view;
+        this.threeCanvas = this.sketchblocks.renderer.domElement;
+
         // create all the other ui
         this.projectsPanel = new ProjectsPanel(this);
         this.publishPanel = new PublishPanel(this);
@@ -52,7 +60,6 @@ export default class FlicksyEditor
         this.scenesPanel = new ScenesPanel(this);
         this.sceneMapsPanel = new SceneMapsPanel(this);
         this.pickerPanel = new PickerPanel(this);
-        this.sketchblocks = new SketchblocksEditor();
 
         this.setActivePanel(this.projectsPanel);
 
@@ -65,7 +72,7 @@ export default class FlicksyEditor
         utility.buttonClick("scene-tab-button",      () => this.setActivePanel(this.scenesPanel));
         utility.buttonClick("scene-maps-tab-button", () => this.setActivePanel(this.sceneMapsPanel));
 
-        utility.buttonClick("stage-tab-button",    () => this.pixi.view.hidden = true);
+        utility.buttonClick("stage-tab-button",    () => this.setThree());
 
         // editor vs playback
         this.returnToEditorButton = utility.getElement("editor-button");
@@ -75,7 +82,7 @@ export default class FlicksyEditor
         this.saveButton.addEventListener("click", () => this.saveProject());
 
         // constantly ensure canvas size is correct
-        this.pixi.ticker.add(() => this.resizePixiCanvas());
+        this.pixi.ticker.add(() => this.resizeCanvases());
         // block normal html clicks
         this.pixi.view.onmousedown = (e) => e.preventDefault();
         this.pixi.view.oncontextmenu = (e) => e.preventDefault();
@@ -122,7 +129,7 @@ export default class FlicksyEditor
         this.sceneMapsPanel.refresh();
 
         this.resolution = this.project.resolution;
-        this.resizePixiCanvas();
+        this.resizeCanvases();
     }
 
     /**
@@ -165,8 +172,22 @@ export default class FlicksyEditor
         this.setActivePanel(this.sceneMapsPanel);
     }
 
+    public setPixi(): void
+    {
+        this.pixiCanvas.hidden = false;
+        //this.threeCanvas.hidden = true;
+    }
+
+    public setThree(): void
+    {
+        //this.pixiCanvas.hidden = true;
+        this.threeCanvas.hidden = false;
+    }
+
     public hideAll(): void
     {
+        this.setPixi();
+
         this.projectsPanel.hide();
         this.drawingBoardsPanel.hide();
         this.scenesPanel.hide();
@@ -216,6 +237,25 @@ export default class FlicksyEditor
         // restore save button to natural state
         this.saveButton.textContent = "save";
         this.saveButton.disabled = false;
+    }
+
+    private resizeCanvases(): void
+    {
+        this.resizePixiCanvas();
+        this.resizeThreeCanvas();
+    }
+
+    private resizeThreeCanvas(): void
+    {
+        // TODO: need to center viewport correctly
+        const w = 320;
+        const h = 200;
+
+        this.sketchblocks.camera.aspect = w / h;
+        this.sketchblocks.camera.updateProjectionMatrix();
+    
+        this.sketchblocks.renderer.setSize(w, h, false);
+        //this.renderer.setViewport(10, 10, 320, 240);
     }
 
     /** 

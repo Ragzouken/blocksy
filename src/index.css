@@ -12,8 +12,16 @@ html, body {
   background-color: black;
 }
 
+#root
+{
+    display: grid;
+}
+
 canvas
 {
+    grid-column: 1;
+    grid-row: 1;
+
     margin: 0px;
     width: 100%;
     height: 100%;
