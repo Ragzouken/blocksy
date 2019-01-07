@@ -10,6 +10,7 @@ import ProjectsPanel from './ProjectsPanel';
 import PublishPanel from './PublishPanel';
 import SceneMapsPanel from './SceneMapsPanel';
 import ScenesPanel from './ScenesPanel';
+import SketchblocksEditor from './SketchblocksEditor';
 
 export default class FlicksyEditor
 {
@@ -21,6 +22,8 @@ export default class FlicksyEditor
     public readonly scenesPanel: ScenesPanel;
     public readonly sceneMapsPanel: SceneMapsPanel;
     public readonly pickerPanel: PickerPanel;
+
+    public readonly sketchblocks: SketchblocksEditor;
 
     public project: FlicksyProject;
 
@@ -49,6 +52,7 @@ export default class FlicksyEditor
         this.scenesPanel = new ScenesPanel(this);
         this.sceneMapsPanel = new SceneMapsPanel(this);
         this.pickerPanel = new PickerPanel(this);
+        this.sketchblocks = new SketchblocksEditor();
 
         this.setActivePanel(this.projectsPanel);
 
@@ -60,6 +64,8 @@ export default class FlicksyEditor
         utility.buttonClick("drawing-tab-button",    () => this.setActivePanel(this.drawingBoardsPanel));
         utility.buttonClick("scene-tab-button",      () => this.setActivePanel(this.scenesPanel));
         utility.buttonClick("scene-maps-tab-button", () => this.setActivePanel(this.sceneMapsPanel));
+
+        utility.buttonClick("stage-tab-button",    () => this.pixi.view.hidden = true);
 
         // editor vs playback
         this.returnToEditorButton = utility.getElement("editor-button");
