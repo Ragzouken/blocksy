@@ -5,6 +5,11 @@ function faceNormal(v0: Vector3, v1: Vector3, v2: Vector3): Vector3
     return v1.sub(v0).cross(v2.sub(v1));
 }
 
+export interface BlockShapeData
+{
+    
+}
+
 export class BlockShape
 {
     public indices: number[] = [];

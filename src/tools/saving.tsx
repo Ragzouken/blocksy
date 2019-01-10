@@ -5,33 +5,16 @@ import { FlicksyProject, FlicksyProjectData } from "../data/FlicksyProject";
 import { base64ToUint8, uint8ToBase64 } from "./base64";
 import * as utility from './utility';
 
-const flicksyVersion = "alpha-1";
+const blocksyVersion = "alpha-1";
 
 export function repairProject(project: FlicksyProject): void
 {
-    if (!project.startScene)
-    {
-        project.startScene = project.scenes[0].uuid;
-    }
-
-    // palette
-    if (project.palette.length < 16)
-    {
-        randomisePalette(project);
-    }
-
-    // scene map
-    project.sceneBoards = project.sceneBoards || [];
-
-    if (project.sceneBoards.length === 0)
-    {
-        project.createSceneBoard();
-    }
+    
 }
 
 export async function loadProjectFromUUID(uuid: string): Promise<FlicksyProject>
 {
-    const data = await localForage.getItem<FlicksyProjectData>(`projects-${uuid}`);
+    const data = await localForage.getItem<FlicksyProjectData>(`projects/${uuid}`);
     const project = loadProject(data);
     
     return project;
@@ -106,7 +89,7 @@ export function newProject(): FlicksyProject
     project.name = "unnamed project";
     project.uuid = uuid4();
     
-    project.flicksyVersion = flicksyVersion;
+    project.flicksyVersion = blocksyVersion;
     
     project.createDrawingBoard();
     project.createSceneBoard();
@@ -173,7 +156,7 @@ export async function saveProject(project: FlicksyProject): Promise<void>
     info.name = project.name;
 
     // save the new listing, the project data, and last open project
-    await localForage.setItem(`projects-${info.uuid}`, data);
+    await localForage.setItem(`projects/${info.uuid}`, data);
     await localForage.setItem("projects", listing);
     await localForage.setItem("last-open", project.uuid);
 }
@@ -189,23 +172,11 @@ export async function findProject(): Promise<FlicksyProject>
         // first entry. return the loaded project if it exists
         const last = await localForage.getItem<string>("last-open");
         const uuid = last || listing[0].uuid;
-        const data = await localForage.getItem<FlicksyProjectData>(`projects-${uuid}`);
+        const data = await localForage.getItem<FlicksyProjectData>(`projects/${uuid}`);
 
         if (data)
         {
             return loadProject(data);
-        }
-    }
-    else
-    {
-        // check if there's a legacy save, and if there is: resave it
-        const data = await localForage.getItem<FlicksyProjectData>("v1-test");
-
-        if (data) 
-        {
-            const project = loadProject(data);
-            await saveProject(project);
-            return project;
         }
     }
 

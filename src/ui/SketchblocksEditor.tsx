@@ -30,10 +30,13 @@ const spriteCount = 4;
 
 function spriteToCoords(offset: number): [number, number, number, number]
 {
+    const x = (offset % spriteCount);
+    const y = Math.floor(offset / spriteCount);
+
     const factor = 1 / spriteCount;
 
-    return [(offset + 0) * factor, 0, 
-            (offset + 1) * factor, 1]
+    return [(x + 0) * factor, (y + 0) * factor, 
+            (x + 1) * factor, (y + 1) * factor]
 }
 
 function randomColor(): number
@@ -126,7 +129,7 @@ export default class SketchblocksEditor
         const texsize = 16;
 
         // texture
-        const mtexture = new MTexture(spriteCount * texsize, texsize);
+        const mtexture = new MTexture(spriteCount * texsize, spriteCount * texsize);
         const colors = [randomColor(), 
                         randomColor(),
                         randomColor(),
@@ -203,18 +206,18 @@ export default class SketchblocksEditor
     
         const testDesign2 = new BlockDesignTest(cube);
         testDesign2.setFaceTile("front", ...spriteToCoords(0));
-        testDesign2.setFaceTile("back", ...spriteToCoords(0));
-        testDesign2.setFaceTile("left", ...spriteToCoords(1));
-        testDesign2.setFaceTile("right", ...spriteToCoords(1));
-        testDesign2.setFaceTile("top", ...spriteToCoords(2));
+        testDesign2.setFaceTile("back", ...spriteToCoords(1));
+        testDesign2.setFaceTile("left", ...spriteToCoords(2));
+        testDesign2.setFaceTile("right", ...spriteToCoords(3));
+        testDesign2.setFaceTile("top", ...spriteToCoords(4));
         //testDesign2.setFaceTile("bottom", ...spriteToCoords(0));
         testDesign2.geometry.translate(-.5, -.5, -.5);
     
         const testDesign = new BlockDesignTest(test);
-        testDesign.setFaceTile("slope", ...spriteToCoords(0));
-        testDesign.setFaceTile("left", ...spriteToCoords(1));
-        testDesign.setFaceTile("right", ...spriteToCoords(2));
-        testDesign.setFaceTile("back", ...spriteToCoords(3));
+        testDesign.setFaceTile("slope", ...spriteToCoords(5));
+        testDesign.setFaceTile("left", ...spriteToCoords(6));
+        testDesign.setFaceTile("right", ...spriteToCoords(7));
+        testDesign.setFaceTile("back", ...spriteToCoords(8));
         testDesign.geometry.translate(-.5, -.5, -.5);
     
         this.testBlockDesigns.push(testDesign2, testDesign);

@@ -258,6 +258,8 @@ export default class DrawingBoardsPanel implements Panel
                 NearestFilter);
             (this.editor.sketchblocks.testMaterial as any).map = texture;
             texture.needsUpdate = true;
+
+            pin.drawing.texture.canvas.addEventListener("flush", () => texture.needsUpdate = true);
         }
     }
 
@@ -535,7 +537,7 @@ export default class DrawingBoardsPanel implements Panel
         });
     }
 
-    private createNewDrawing(width: number, height: number): PinnedDrawing
+    public createNewDrawing(width: number, height: number): PinnedDrawing
     {
         // center
         const view = new Point(this.editor.pixi.view.width / 2, this.editor.pixi.view.height / 2);

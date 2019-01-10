@@ -1,6 +1,11 @@
 import { Vector3 } from "three";
 import { randomInt } from "../tools/utility";
 
+export interface StageData
+{
+    
+}
+
 export interface Block
 {
     designID: number;

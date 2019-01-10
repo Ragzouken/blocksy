@@ -295,5 +295,6 @@ export class MTexture
     public update(): void
     {
         this.base.update();
+        this.canvas.dispatchEvent(new CustomEvent("flush"));
     }
 }

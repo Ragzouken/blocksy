@@ -1,6 +1,6 @@
 import * as Pixi from 'pixi.js';
 import { Scene } from '../data/Scene';
-import { FlicksyProject } from '../data/FlicksyProject';
+import { BlocksyProject } from '../data/FlicksyProject';
 import { saveProject } from '../tools/saving';
 import * as utility from '../tools/utility';
 import DrawingBoardsPanel from './DrawingBoardsPanel';
@@ -25,7 +25,7 @@ export default class FlicksyEditor
 
     public readonly sketchblocks: SketchblocksEditor;
 
-    public project: FlicksyProject;
+    public project: BlocksyProject;
 
     private readonly returnToEditorButton: HTMLButtonElement;
 
@@ -40,6 +40,8 @@ export default class FlicksyEditor
                        public resolution: [number, number])
     {
         this.pixiCanvasContainer = document.getElementById("container")! as HTMLDivElement;
+        
+        this.sketchblocks = new SketchblocksEditor(this);
 
         // transparent prevents flickering on silk browser
         this.pixi = new Pixi.Application(this.resolution[0], 
@@ -47,8 +49,6 @@ export default class FlicksyEditor
                                          { transparent: true });
         this.canvasContainer.appendChild(this.pixi.view);
         this.pixi.start();
-
-        this.sketchblocks = new SketchblocksEditor(this);
 
         this.pixiCanvas = this.pixi.view;
         this.threeCanvas = this.sketchblocks.renderer.domElement;
@@ -100,7 +100,7 @@ export default class FlicksyEditor
      * Set the project that should be displayed and editable within this UI
      * @param project The project the editor should operate on
      */
-    public setProject(project: FlicksyProject): void
+    public setProject(project: BlocksyProject): void
     {
         this.project = project;
 
@@ -113,6 +113,8 @@ export default class FlicksyEditor
 
         // first scene map
         this.sceneMapsPanel.setMap(project.sceneBoards[0]);
+
+        const drawing = this.drawingBoardsPanel.createNewDrawing(4 * 16, 4 * 16);
 
         this.refresh();
     }
@@ -128,7 +130,7 @@ export default class FlicksyEditor
         this.scenesPanel.refresh();
         this.sceneMapsPanel.refresh();
 
-        this.resolution = this.project.resolution;
+        this.resolution = [160, 100];
         this.resizeCanvases();
     }
 

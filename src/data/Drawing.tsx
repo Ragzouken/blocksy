@@ -6,7 +6,7 @@ export interface DrawingData
     uuid: string;
     name: string;
 
-    size: number[];
+    size: [number, number];
     data: Uint8ClampedArray;
 }
 

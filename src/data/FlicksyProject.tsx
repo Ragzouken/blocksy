@@ -8,13 +8,12 @@ import { ElementBoardData } from './FlicksyData';
 import { Scene, SceneData } from './Scene';
 import SceneBoard, { PinnedScene } from './SceneBoard';
 
-export interface FlicksyProjectData
+export interface BlocksyProjectData
 {
     uuid: string;
     name: string;
 
-    flicksyVersion: string;
-    resolution: [number, number];
+    blocksyVersion: string;
     startScene: string;
 
     drawings: DrawingData[];
@@ -25,13 +24,12 @@ export interface FlicksyProjectData
     sceneBoards: ElementBoardData[];
 }
 
-export class FlicksyProject
+export class BlocksyProject
 {
     public uuid: string;
     public name: string;
     
-    public flicksyVersion: string;
-    public resolution: [number, number] = [160, 100];
+    public blocksyVersion: string;
 
     public drawings: Drawing[] = [];
     public drawingBoards: DrawingBoard[] = [];
@@ -41,13 +39,12 @@ export class FlicksyProject
 
     public startScene: string;
 
-    public fromData(data: FlicksyProjectData): FlicksyProject
+    public fromData(data: BlocksyProjectData): BlocksyProject
     {
         this.uuid = data.uuid;
         this.name = data.name;
         
-        this.flicksyVersion = data.flicksyVersion;
-        this.resolution = data.resolution || [160, 100];
+        this.blocksyVersion = data.blocksyVersion;
         this.startScene = data.startScene;
 
         this.drawings = data.drawings.map(drawing => (new Drawing).fromData(drawing));
@@ -80,14 +77,13 @@ export class FlicksyProject
         return this;
     }
 
-    public toData(): FlicksyProjectData
+    public toData(): BlocksyProjectData
     {
         return {
             uuid: this.uuid,
             name: this.name,
 
-            flicksyVersion: this.flicksyVersion,
-            resolution: this.resolution,
+            blocksyVersion: this.blocksyVersion,
             startScene: this.startScene,
 
             drawings: this.drawings.map(drawing => drawing.toData()),
