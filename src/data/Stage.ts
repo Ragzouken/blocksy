@@ -1,10 +1,6 @@
 import { Vector3 } from "three";
 import { randomInt } from "../tools/utility";
-
-export interface StageData
-{
-    
-}
+import { StageData } from "./BlocksyData";
 
 export interface Block
 {
@@ -19,6 +15,17 @@ export default class Stage
     public name = "unnamed stage";
 
     public readonly blocks = new Map<string, Block>();
+
+    public toData(): StageData
+    {
+        return {
+            name: this.name,
+            uuid: this.uuid,
+
+            blockset: "invalid uuid",
+            blocks: [],
+        }
+    }
 }
 
 export function makeRandomStage(): Stage

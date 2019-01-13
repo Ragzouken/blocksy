@@ -7,7 +7,7 @@ export interface BlockShapeFaceData
 
     positions: Vector3Data[];
     texturing: Vector2Data[];
-    indexes: number[];
+    triangles: Vector3Data[];
 }
 
 export interface BlockShapeData
@@ -22,7 +22,7 @@ export interface BlockDesignData
 {
     name: string;
 
-    shape: BlockShapeData;
+    shape: string;
     faces: number[];
 }
 
@@ -41,7 +41,7 @@ export interface BlocksetData
     uuid: string;
 
     designs: BlockDesignData[];
-    texture: string;
+    texture: TextureData;
 }
 
 export interface BlockData

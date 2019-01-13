@@ -1,11 +1,12 @@
 import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector3, Clock, Vector2, Euler, Material, CanvasTexture, ClampToEdgeWrapping, NearestFilter, MeshBasicMaterial, Mesh, Raycaster, BoxBufferGeometry, Object3D, PlaneBufferGeometry, CubeGeometry, GridHelper, AmbientLight, DirectionalLight, Texture } from 'three';
 import { getElement, randomInt, rgb2num } from '../tools/utility';
-import { BlockDesignTest } from '../data/BlockDesignTest';
+import BlockDesign from '../data/BlockDesign';
 import { MTexture } from '../tools/MTexture';
-import { BlockShape } from '../data/Blocks';
+import BlockShape from '../data/BlockShape';
 import { makeRandomStage } from '../data/Stage';
 import StageView from './StageView';
 import FlicksyEditor from './FlicksyEditor';
+import { Cube, Ramp } from '../data/DefaultShapes';
 
 class PivotCamera
 {
@@ -62,7 +63,7 @@ export default class SketchblocksEditor
 
     public testTexture: CanvasTexture;
     public testMaterial: Material;
-    public testBlockDesigns: BlockDesignTest[] = [];
+    public testBlockDesigns: BlockDesign[] = [];
 
     private readonly testCursorCube: Mesh;
     private readonly testPlaceCube: Mesh;
@@ -154,70 +155,28 @@ export default class SketchblocksEditor
         this.testMaterial = new MeshBasicMaterial({ color: 0xffffff, map: this.testTexture });
 
         // designs
-        const cube = new BlockShape();
-        cube.AddQuadFace("back",
-                        new Vector3(1, 0, 0), new Vector2(0, 1),
-                        new Vector3(0, 0, 0), new Vector2(1, 1),
-                        new Vector3(0, 1, 0), new Vector2(1, 0),
-                        new Vector3(1, 1, 0), new Vector2(0, 0));
-        cube.AddQuadFace("front",
-                        new Vector3(0, 1, 1), new Vector2(1, 0),
-                        new Vector3(0, 0, 1), new Vector2(1, 1),
-                        new Vector3(1, 0, 1), new Vector2(0, 1),
-                        new Vector3(1, 1, 1), new Vector2(0, 0));
-        cube.AddQuadFace("left",
-                        new Vector3(1, 1, 1), new Vector2(1, 0),
-                        new Vector3(1, 0, 1), new Vector2(1, 1),
-                        new Vector3(1, 0, 0), new Vector2(0, 1),
-                        new Vector3(1, 1, 0), new Vector2(0, 0));
-        cube.AddQuadFace("right",
-                        new Vector3(0, 1, 0), new Vector2(1, 0),
-                        new Vector3(0, 0, 0), new Vector2(1, 1),
-                        new Vector3(0, 0, 1), new Vector2(0, 1),
-                        new Vector3(0, 1, 1), new Vector2(0, 0));
-        cube.AddQuadFace("top",
-                        new Vector3(0, 1, 1), new Vector2(1, 0),
-                        new Vector3(1, 1, 1), new Vector2(1, 1),
-                        new Vector3(1, 1, 0), new Vector2(0, 1),
-                        new Vector3(0, 1, 0), new Vector2(0, 0));
-    
-        const test = new BlockShape();
-        test.AddQuadFace("slope",
-                        new Vector3(0, 1, 0), new Vector2(1, 1),
-                        new Vector3(0, 0, 1), new Vector2(1, 0),
-                        new Vector3(1, 0, 1), new Vector2(0, 0),
-                        new Vector3(1, 1, 0), new Vector2(0, 1));
-    
-        test.AddQuadFace("back",
-                        new Vector3(1, 0, 0), new Vector2(0, 1),
-                        new Vector3(0, 0, 0), new Vector2(1, 1),
-                        new Vector3(0, 1, 0), new Vector2(1, 0),
-                        new Vector3(1, 1, 0), new Vector2(0, 0));
-    
-        test.AddTriangleFace("left", 
-                            new Vector3(1, 1, 0), new Vector2(1, 1),
-                            new Vector3(1, 0, 1), new Vector2(0, 0),
-                            new Vector3(1, 0, 0), new Vector2(1, 0));
-    
-        test.AddTriangleFace("right", 
-                            new Vector3(0, 0, 1), new Vector2(1, 0),
-                            new Vector3(0, 1, 0), new Vector2(0, 1),
-                            new Vector3(0, 0, 0), new Vector2(0, 0));
-    
-        const testDesign2 = new BlockDesignTest(cube);
+        const cube = new BlockShape().fromData(Cube);
+        const ramp = new BlockShape().fromData(Ramp);
+        
+        const testDesign2 = new BlockDesign();
+        testDesign2.setShape(cube);
+
         testDesign2.setFaceTile("front", ...spriteToCoords(0));
         testDesign2.setFaceTile("back", ...spriteToCoords(1));
         testDesign2.setFaceTile("left", ...spriteToCoords(2));
         testDesign2.setFaceTile("right", ...spriteToCoords(3));
         testDesign2.setFaceTile("top", ...spriteToCoords(4));
-        //testDesign2.setFaceTile("bottom", ...spriteToCoords(0));
+        testDesign2.setFaceTile("bottom", ...spriteToCoords(5));
         testDesign2.geometry.translate(-.5, -.5, -.5);
     
-        const testDesign = new BlockDesignTest(test);
+        const testDesign = new BlockDesign();
+        testDesign.setShape(ramp);
+
         testDesign.setFaceTile("slope", ...spriteToCoords(5));
         testDesign.setFaceTile("left", ...spriteToCoords(6));
         testDesign.setFaceTile("right", ...spriteToCoords(7));
         testDesign.setFaceTile("back", ...spriteToCoords(8));
+        testDesign.setFaceTile("bottom", ...spriteToCoords(9));
         testDesign.geometry.translate(-.5, -.5, -.5);
     
         this.testBlockDesigns.push(testDesign2, testDesign);
