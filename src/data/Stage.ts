@@ -42,7 +42,7 @@ export function makeRandomStage(blockset: Blockset): Stage
             const block = {
                 designID: randomInt(0, blockset.designs.length - 1),
                 position: new Vector3(x, randomInt(0, 1), z),
-                orientation: randomInt(0, 4),
+                orientation: randomInt(0, 3),
             }
 
             stage.blocks.set(block.position.x+","+block.position.y+","+block.position.z, block);

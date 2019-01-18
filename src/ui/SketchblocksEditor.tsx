@@ -123,6 +123,7 @@ export default class SketchblocksEditor
 
         this.testMaterial = new MeshBasicMaterial({ color: 0xffffff, map: this.testTexture });
         this.testTexture.needsUpdate = true;
+        this.project.blocksets[0].texture.canvas.addEventListener("flush", () => this.testTexture.needsUpdate = true);
 
         // test stage
         this.stageView = new StageView(this);

@@ -115,6 +115,7 @@ export default class FlicksyEditor
         this.sceneMapsPanel.setMap(project.sceneBoards[0]);
 
         const drawing = this.drawingBoardsPanel.createNewDrawing(4 * 16, 4 * 16);
+        drawing.drawing.texture = this.sketchblocks.project.blocksets[0].texture;
 
         this.refresh();
     }

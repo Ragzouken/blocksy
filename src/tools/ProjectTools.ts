@@ -46,6 +46,19 @@ export function createBlankProject(): BlocksyProject
         blockset.designs.push(cube);
     }
 
+    for (let i = 0; i < 3; ++i)
+    {
+        const data: BlockDesignData = {
+            name: `Ramp {i}`,
+            shape: project.shapes[1].uuid,
+            faces: [randomInt(0, 16), randomInt(0, 16), randomInt(0, 16), 
+                    randomInt(0, 16), randomInt(0, 16)],
+        }
+
+        const ramp = new BlockDesign().fromData(data, project.shapes, blockset);
+        blockset.designs.push(ramp);
+    }
+
     const stage = makeRandomStage(blockset);
     stage.name = "Unnamed Stage";
     stage.uuid = uuid4();

@@ -25,7 +25,6 @@ export default class BlockDesign
         this.geometry.addAttribute("normal",   this.shape.normalBuffer);
         this.geometry.addAttribute("uv",       this.texcoordBuffer);
         this.geometry.setIndex(this.shape.indices);
-        this.geometry.translate(-.5, -.5, -.5);
     }
 
     public fromData(data: BlockDesignData, shapes: BlockShape[], blockset: Blockset): this
