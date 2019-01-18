@@ -11,6 +11,7 @@ import PublishPanel from './PublishPanel';
 import SceneMapsPanel from './SceneMapsPanel';
 import ScenesPanel from './ScenesPanel';
 import SketchblocksEditor from './SketchblocksEditor';
+import StagesPanel from './StagesPanel';
 
 export default class FlicksyEditor
 {
@@ -22,6 +23,7 @@ export default class FlicksyEditor
     public readonly scenesPanel: ScenesPanel;
     public readonly sceneMapsPanel: SceneMapsPanel;
     public readonly pickerPanel: PickerPanel;
+    public readonly stagesPanel: StagesPanel;
 
     public readonly sketchblocks: SketchblocksEditor;
 
@@ -47,6 +49,8 @@ export default class FlicksyEditor
         this.pixi = new Pixi.Application(this.resolution[0], 
                                          this.resolution[1], 
                                          { transparent: true });
+
+        this.canvasContainer = document.getElementById("pixi")!;
         this.canvasContainer.appendChild(this.pixi.view);
         this.pixi.start();
 
@@ -60,6 +64,7 @@ export default class FlicksyEditor
         this.scenesPanel = new ScenesPanel(this);
         this.sceneMapsPanel = new SceneMapsPanel(this);
         this.pickerPanel = new PickerPanel(this);
+        this.stagesPanel = new StagesPanel(this);
 
         this.setActivePanel(this.projectsPanel);
 
@@ -72,7 +77,7 @@ export default class FlicksyEditor
         utility.buttonClick("scene-tab-button",      () => this.setActivePanel(this.scenesPanel));
         utility.buttonClick("scene-maps-tab-button", () => this.setActivePanel(this.sceneMapsPanel));
 
-        utility.buttonClick("stage-tab-button",    () => this.setThree());
+        utility.buttonClick("stage-tab-button",    () => this.setActivePanel(this.stagesPanel));
 
         // editor vs playback
         this.returnToEditorButton = utility.getElement("editor-button");
@@ -183,7 +188,7 @@ export default class FlicksyEditor
 
     public setThree(): void
     {
-        //this.pixiCanvas.hidden = true;
+        this.pixiCanvas.hidden = true;
         this.threeCanvas.hidden = false;
     }
 
@@ -197,6 +202,7 @@ export default class FlicksyEditor
         this.sceneMapsPanel.hide();
         this.publishPanel.hide();
         this.pickerPanel.hide();
+        this.stagesPanel.hide();
     }
 
     /**

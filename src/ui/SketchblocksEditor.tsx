@@ -95,7 +95,7 @@ export default class SketchblocksEditor
         // renderer
         this.renderer = new WebGLRenderer({ antialias: false });
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        getElement("root").appendChild(this.renderer.domElement);
+        getElement("three").appendChild(this.renderer.domElement);
 
         // camera
         // TODO: check aspect ratio
