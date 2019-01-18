@@ -16,7 +16,7 @@ export default class Blockset
         this.name = data.name;
         this.uuid = data.uuid;
 
-        this.designs = data.designs.map(d => new BlockDesign().fromData(d, shapes));
+        this.designs = data.designs.map(d => new BlockDesign().fromData(d, shapes, this));
         this.texture = new MTexture(...data.texture.size);
         
         this.texture.data.data.set(data.texture.data);
@@ -40,5 +40,15 @@ export default class Blockset
                 data: this.texture.data.data,
             },
         };
+    }
+
+    public getTileTexccords(tileID: number): [number, number, number, number]
+    {
+        const x = (tileID % 8);
+        const y = Math.floor(tileID / 8);
+        const factor = 1 / 8;
+
+        return [(x + 0) * factor, (y + 0) * factor,
+                (x + 1) * factor, (y + 1) * factor];
     }
 }

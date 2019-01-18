@@ -7,6 +7,8 @@ import { makeRandomStage } from '../data/Stage';
 import StageView from './StageView';
 import FlicksyEditor from './FlicksyEditor';
 import { Cube, Ramp } from '../data/DefaultShapes';
+import { createBlankProject } from '../tools/ProjectTools';
+import BlocksyProject from '../data/BlocksyProject';
 
 class PivotCamera
 {
@@ -27,26 +29,6 @@ class PivotCamera
     }
 }
 
-const spriteCount = 4;
-
-function spriteToCoords(offset: number): [number, number, number, number]
-{
-    const x = (offset % spriteCount);
-    const y = Math.floor(offset / spriteCount);
-
-    const factor = 1 / spriteCount;
-
-    return [(x + 0) * factor, (y + 0) * factor, 
-            (x + 1) * factor, (y + 1) * factor]
-}
-
-function randomColor(): number
-{
-    return rgb2num(randomInt(0, 255),
-                   randomInt(0, 255),
-                   randomInt(0, 255));
-}
-
 export default class SketchblocksEditor
 {
     public readonly clock: Clock;
@@ -63,7 +45,8 @@ export default class SketchblocksEditor
 
     public testTexture: CanvasTexture;
     public testMaterial: Material;
-    public testBlockDesigns: BlockDesign[] = [];
+
+    public project: BlocksyProject;
 
     private readonly testCursorCube: Mesh;
     private readonly testPlaceCube: Mesh;
@@ -129,23 +112,9 @@ export default class SketchblocksEditor
 
         const texsize = 16;
 
-        // texture
-        const mtexture = new MTexture(spriteCount * texsize, spriteCount * texsize);
-        const colors = [randomColor(), 
-                        randomColor(),
-                        randomColor(),
-                        randomColor(),
-                        randomColor(),
-                        randomColor()];
+        this.project = createBlankProject();
 
-        mtexture.plot((x, y) =>
-        {
-            const i = Math.floor(x / texsize);
-
-            return colors[(i + randomInt(0, 1)) % colors.length];
-        });
-
-        this.testTexture = new CanvasTexture(mtexture.canvas, 
+        this.testTexture = new CanvasTexture(this.project.blocksets[0].texture.canvas, 
                                           undefined, 
                                           ClampToEdgeWrapping,
                                           ClampToEdgeWrapping, 
@@ -153,37 +122,11 @@ export default class SketchblocksEditor
                                           NearestFilter);
 
         this.testMaterial = new MeshBasicMaterial({ color: 0xffffff, map: this.testTexture });
-
-        // designs
-        const cube = new BlockShape().fromData(Cube);
-        const ramp = new BlockShape().fromData(Ramp);
-        
-        const testDesign2 = new BlockDesign();
-        testDesign2.setShape(cube);
-
-        testDesign2.setFaceTile("front", ...spriteToCoords(0));
-        testDesign2.setFaceTile("back", ...spriteToCoords(1));
-        testDesign2.setFaceTile("left", ...spriteToCoords(2));
-        testDesign2.setFaceTile("right", ...spriteToCoords(3));
-        testDesign2.setFaceTile("top", ...spriteToCoords(4));
-        testDesign2.setFaceTile("bottom", ...spriteToCoords(5));
-        testDesign2.geometry.translate(-.5, -.5, -.5);
-    
-        const testDesign = new BlockDesign();
-        testDesign.setShape(ramp);
-
-        testDesign.setFaceTile("slope", ...spriteToCoords(5));
-        testDesign.setFaceTile("left", ...spriteToCoords(6));
-        testDesign.setFaceTile("right", ...spriteToCoords(7));
-        testDesign.setFaceTile("back", ...spriteToCoords(8));
-        testDesign.setFaceTile("bottom", ...spriteToCoords(9));
-        testDesign.geometry.translate(-.5, -.5, -.5);
-    
-        this.testBlockDesigns.push(testDesign2, testDesign);
+        this.testTexture.needsUpdate = true;
 
         // test stage
         this.stageView = new StageView(this);
-        this.stageView.setStage(makeRandomStage());
+        this.stageView.setStage(this.project.stages[0]);
 
         // cursor
         const cursorGeometry = new BoxBufferGeometry(1.1, 1.1, 1.1);
@@ -277,7 +220,7 @@ export default class SketchblocksEditor
 
     public testMakeBlock(): Mesh
     {
-        return new Mesh(this.testBlockDesigns[this.block % 2].geometry, this.testMaterial);
+        return new Mesh(this.stageView.stage.blockset.designs[this.block % 2].geometry, this.testMaterial);
     }
 
     private resizeThreeCanvas(): void

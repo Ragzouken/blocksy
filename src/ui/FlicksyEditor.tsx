@@ -1,6 +1,6 @@
 import * as Pixi from 'pixi.js';
 import { Scene } from '../data/Scene';
-import { BlocksyProject } from '../data/FlicksyProject';
+import { FlicksyProject } from '../data/FlicksyProject';
 import { saveProject } from '../tools/saving';
 import * as utility from '../tools/utility';
 import DrawingBoardsPanel from './DrawingBoardsPanel';
@@ -25,7 +25,7 @@ export default class FlicksyEditor
 
     public readonly sketchblocks: SketchblocksEditor;
 
-    public project: BlocksyProject;
+    public project: FlicksyProject;
 
     private readonly returnToEditorButton: HTMLButtonElement;
 
@@ -100,7 +100,7 @@ export default class FlicksyEditor
      * Set the project that should be displayed and editable within this UI
      * @param project The project the editor should operate on
      */
-    public setProject(project: BlocksyProject): void
+    public setProject(project: FlicksyProject): void
     {
         this.project = project;
 

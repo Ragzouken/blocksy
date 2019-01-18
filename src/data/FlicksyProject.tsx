@@ -8,7 +8,7 @@ import { ElementBoardData } from './FlicksyData';
 import { Scene, SceneData } from './Scene';
 import SceneBoard, { PinnedScene } from './SceneBoard';
 
-export interface BlocksyProjectData
+export interface FlicksyProjectData
 {
     uuid: string;
     name: string;
@@ -24,12 +24,13 @@ export interface BlocksyProjectData
     sceneBoards: ElementBoardData[];
 }
 
-export class BlocksyProject
+export class FlicksyProject
 {
     public uuid: string;
     public name: string;
     
     public blocksyVersion: string;
+    public resolution = [160, 100];
 
     public drawings: Drawing[] = [];
     public drawingBoards: DrawingBoard[] = [];
@@ -39,7 +40,7 @@ export class BlocksyProject
 
     public startScene: string;
 
-    public fromData(data: BlocksyProjectData): BlocksyProject
+    public fromData(data: FlicksyProjectData): FlicksyProject
     {
         this.uuid = data.uuid;
         this.name = data.name;
@@ -77,7 +78,7 @@ export class BlocksyProject
         return this;
     }
 
-    public toData(): BlocksyProjectData
+    public toData(): FlicksyProjectData
     {
         return {
             uuid: this.uuid,

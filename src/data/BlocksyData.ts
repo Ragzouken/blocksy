@@ -1,6 +1,14 @@
 export type Vector3Data = [number, number, number];
 export type Vector2Data = [number, number];
 
+export interface PaletteData
+{
+    name: string;
+    uuid: string;
+
+    colours: number[];
+}
+
 export interface BlockShapeFaceData
 {
     name: string;

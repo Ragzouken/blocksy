@@ -2,6 +2,7 @@ import { BufferGeometry, Float32BufferAttribute, BufferAttribute } from 'three';
 import { lerp } from '../tools/utility';
 import BlockShape from './BlockShape';
 import { BlockDesignData } from './BlocksyData';
+import Blockset from './Blockset';
 
 // TODO: buffer attribute is view not model data...
 export default class BlockDesign 
@@ -24,15 +25,23 @@ export default class BlockDesign
         this.geometry.addAttribute("normal",   this.shape.normalBuffer);
         this.geometry.addAttribute("uv",       this.texcoordBuffer);
         this.geometry.setIndex(this.shape.indices);
+        this.geometry.translate(-.5, -.5, -.5);
     }
 
-    public fromData(data: BlockDesignData, shapes: BlockShape[]): this
+    public fromData(data: BlockDesignData, shapes: BlockShape[], blockset: Blockset): this
     {
         this.name = data.name;
 
         const shape = shapes.find(shape => shape.uuid === data.shape)!;
 
         this.setShape(shape);
+
+        const bla = Array.from(this.shape.faces.keys());
+
+        data.faces.forEach((tileID, index) =>
+        {
+            this.setFaceTile(bla[index], ...blockset.getTileTexccords(tileID));
+        });
 
         return this;
     }

@@ -25,7 +25,7 @@ class BlockView implements View<Block>
     {
         this.mesh.position.copy(this.model.position).addScalar(.5);
         this.mesh.setRotationFromAxisAngle(new Vector3(0, 1, 0), this.model.orientation * Math.PI / 2);
-        this.mesh.geometry = this.stageView.editor.testBlockDesigns[this.model.designID % 2].geometry;
+        this.mesh.geometry = this.stageView.stage.blockset.designs[this.model.designID % 2].geometry;
     }
 
     public setActive(active: boolean)

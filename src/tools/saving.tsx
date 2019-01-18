@@ -89,7 +89,7 @@ export function newProject(): FlicksyProject
     project.name = "unnamed project";
     project.uuid = uuid4();
     
-    project.flicksyVersion = blocksyVersion;
+    project.blocksyVersion = blocksyVersion;
     
     project.createDrawingBoard();
     project.createSceneBoard();

@@ -256,10 +256,10 @@ export default class DrawingBoardsPanel implements Panel
                 ClampToEdgeWrapping, 
                 NearestFilter, 
                 NearestFilter);
-            (this.editor.sketchblocks.testMaterial as any).map = texture;
-            texture.needsUpdate = true;
+            //(this.editor.sketchblocks.testMaterial as any).map = texture;
+            //texture.needsUpdate = true;
 
-            pin.drawing.texture.canvas.addEventListener("flush", () => texture.needsUpdate = true);
+            //pin.drawing.texture.canvas.addEventListener("flush", () => texture.needsUpdate = true);
         }
     }
 
