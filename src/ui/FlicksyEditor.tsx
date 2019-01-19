@@ -12,6 +12,7 @@ import SceneMapsPanel from './SceneMapsPanel';
 import ScenesPanel from './ScenesPanel';
 import SketchblocksEditor from './SketchblocksEditor';
 import StagesPanel from './StagesPanel';
+import BlockDesignsPanel from './BlockDesignsPanel';
 
 export default class FlicksyEditor
 {
@@ -24,6 +25,7 @@ export default class FlicksyEditor
     public readonly sceneMapsPanel: SceneMapsPanel;
     public readonly pickerPanel: PickerPanel;
     public readonly stagesPanel: StagesPanel;
+    public readonly designsPanel: BlockDesignsPanel;
 
     public readonly sketchblocks: SketchblocksEditor;
 
@@ -65,6 +67,7 @@ export default class FlicksyEditor
         this.sceneMapsPanel = new SceneMapsPanel(this);
         this.pickerPanel = new PickerPanel(this);
         this.stagesPanel = new StagesPanel(this);
+        this.designsPanel = new BlockDesignsPanel(this);
 
         this.setActivePanel(this.projectsPanel);
 
@@ -77,7 +80,8 @@ export default class FlicksyEditor
         utility.buttonClick("scene-tab-button",      () => this.setActivePanel(this.scenesPanel));
         utility.buttonClick("scene-maps-tab-button", () => this.setActivePanel(this.sceneMapsPanel));
 
-        utility.buttonClick("stage-tab-button",    () => this.setActivePanel(this.stagesPanel));
+        utility.buttonClick("stage-tab-button",  () => this.setActivePanel(this.stagesPanel));
+        utility.buttonClick("design-tab-button", () => this.setActivePanel(this.designsPanel));  
 
         // editor vs playback
         this.returnToEditorButton = utility.getElement("editor-button");
@@ -135,6 +139,9 @@ export default class FlicksyEditor
         this.drawingBoardsPanel.refresh();
         this.scenesPanel.refresh();
         this.sceneMapsPanel.refresh();
+
+        this.stagesPanel.refresh();
+        this.designsPanel.refresh();
 
         this.resolution = [160, 100];
         this.resizeCanvases();
@@ -202,7 +209,9 @@ export default class FlicksyEditor
         this.sceneMapsPanel.hide();
         this.publishPanel.hide();
         this.pickerPanel.hide();
+
         this.stagesPanel.hide();
+        this.designsPanel.hide();
     }
 
     /**
