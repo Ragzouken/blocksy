@@ -6,36 +6,16 @@ import { createBlankProject } from '../tools/ProjectTools';
 import BlocksyProject from '../data/BlocksyProject';
 import ThreeLayer from './ThreeLayer';
 
-class PivotCamera
-{
-    public focus = new Vector3(0, 0);
-    public angle = 0;
-    public pitch = -Math.PI / 8;
-    public distance = 12;
-    
-    public setCamera(camera: PerspectiveCamera): void
-    {
-        const position = new Vector3(0, 0, this.distance);
-        const rotation = new Euler(this.pitch, this.angle, 0, "ZYX");
-        
-        position.applyEuler(rotation);
-
-        camera.position.addVectors(position, this.focus);
-        camera.lookAt(this.focus);
-    }
-}
-
 export default class SketchblocksEditor
 {
     public readonly clock: Clock;
     public readonly renderer: WebGLRenderer;
     public readonly camera: PerspectiveCamera;
-    public readonly pivotCamera = new PivotCamera();
     public readonly scene: Scene;
 
     private readonly stageView: StageView;
 
-    private readonly keys = new Map<string, boolean>();
+    public readonly keys = new Map<string, boolean>();
 
     public block = 0;
 
@@ -192,38 +172,6 @@ export default class SketchblocksEditor
 
     public update(dt: number): void
     {
-        if (this.keys.get("a"))
-        {
-            this.pivotCamera.angle -= Math.PI / 4 * dt;
-        }
-
-        if (this.keys.get("d"))
-        {
-            this.pivotCamera.angle += Math.PI / 4 * dt;
-        }
-
-        if (this.keys.get("w"))
-        {
-            this.pivotCamera.pitch -= Math.PI / 16 * dt;
-        }
-
-        if (this.keys.get("s"))
-        {
-            this.pivotCamera.pitch += Math.PI / 16 * dt;
-        }
-
-        if (this.keys.get("e"))
-        {
-            this.pivotCamera.distance += 8 * dt;
-        }
-
-        if (this.keys.get("q"))
-        {
-            this.pivotCamera.distance -= 8 * dt;
-        }
-
-        this.pivotCamera.setCamera(this.camera);
-
         this.threeLayers.forEach(layer => layer.update(dt));
     }
 
