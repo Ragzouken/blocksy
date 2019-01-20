@@ -1,14 +1,10 @@
 import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector3, Clock, Vector2, Euler, Material, CanvasTexture, ClampToEdgeWrapping, NearestFilter, MeshBasicMaterial, Mesh, Raycaster, BoxBufferGeometry, Object3D, PlaneBufferGeometry, CubeGeometry, GridHelper, AmbientLight, DirectionalLight, Texture } from 'three';
-import { getElement, randomInt, rgb2num } from '../tools/utility';
-import BlockDesign from '../data/BlockDesign';
-import { MTexture } from '../tools/MTexture';
-import BlockShape from '../data/BlockShape';
-import { makeRandomStage } from '../data/Stage';
+import { getElement } from '../tools/utility';
 import StageView from './StageView';
 import FlicksyEditor from './FlicksyEditor';
-import { Cube, Ramp } from '../data/DefaultShapes';
 import { createBlankProject } from '../tools/ProjectTools';
 import BlocksyProject from '../data/BlocksyProject';
+import ThreeLayer from './ThreeLayer';
 
 class PivotCamera
 {
@@ -39,7 +35,7 @@ export default class SketchblocksEditor
 
     private readonly stageView: StageView;
 
-    private readonly keys: {[key: string]: boolean} = {};
+    private readonly keys = new Map<string, boolean>();
 
     public block = 0;
 
@@ -58,6 +54,8 @@ export default class SketchblocksEditor
     private cursorPosition = new Vector3(0, 0, 0);
     private placePosition = new Vector3(0, 0, 0);
 
+    public threeLayers: ThreeLayer[] = [];
+
     public constructor(readonly editor2: FlicksyEditor)
     {
         //
@@ -66,9 +64,9 @@ export default class SketchblocksEditor
         // keys
         const keydown = (event: any) =>
         {
-            this.keys[event.key] = true;
+            this.keys.set(event.key, true);
 
-            if (event.key === "[")
+            if (event.key === "z")
             {
                 const id = this.cursorPosition.toArray().join(",");
                 const block = this.stageView.stage.blocks.get(id);
@@ -79,11 +77,23 @@ export default class SketchblocksEditor
                     this.stageView.refreshBlock(block);
                 }
             }
+
+            if (event.key === "x")
+            {
+                const id = this.cursorPosition.toArray().join(",");
+                const block = this.stageView.stage.blocks.get(id);
+
+                if (block)
+                {
+                    block.orientation -= 1;
+                    this.stageView.refreshBlock(block);
+                }
+            }
         }
 
         const keyup = (event: any) =>
         {
-            this.keys[event.key] = false;
+            this.keys.set(event.key, false);
         }
 
         document.addEventListener('keydown', keydown, false);
@@ -155,6 +165,7 @@ export default class SketchblocksEditor
         // mouse
         document.addEventListener('mousemove', event => this.updateCursor(event), false);
         document.addEventListener('mousedown', event => this.onDocumentMouseDown(event), false);
+        window.addEventListener("blur", event => this.keys.clear());
 
         // grid renderer
         const gridRenderer = new GridHelper(16, 16);
@@ -181,42 +192,46 @@ export default class SketchblocksEditor
 
     public update(dt: number): void
     {
-        if (this.keys["a"])
+        if (this.keys.get("a"))
         {
             this.pivotCamera.angle -= Math.PI / 4 * dt;
         }
 
-        if (this.keys["d"])
+        if (this.keys.get("d"))
         {
             this.pivotCamera.angle += Math.PI / 4 * dt;
         }
 
-        if (this.keys["w"])
+        if (this.keys.get("w"))
         {
             this.pivotCamera.pitch -= Math.PI / 16 * dt;
         }
 
-        if (this.keys["s"])
+        if (this.keys.get("s"))
         {
             this.pivotCamera.pitch += Math.PI / 16 * dt;
         }
 
-        if (this.keys["e"])
+        if (this.keys.get("e"))
         {
             this.pivotCamera.distance += 8 * dt;
         }
 
-        if (this.keys["q"])
+        if (this.keys.get("q"))
         {
             this.pivotCamera.distance -= 8 * dt;
         }
 
         this.pivotCamera.setCamera(this.camera);
+
+        this.threeLayers.forEach(layer => layer.update(dt));
     }
 
     public render(): void
     {
         this.renderer.render(this.scene, this.camera);
+
+        this.threeLayers.forEach(layer => layer.render(this.renderer));
     }
 
     public testMakeBlock(): Mesh
@@ -298,7 +313,7 @@ export default class SketchblocksEditor
         this.testPlaceCube.position.copy(this.placePosition).addScalar(.5);
     }
 
-    private getMousePosition(event: any): [number, number]
+    public getMousePosition(event: any): [number, number]
     {
         // e = Mouse click event.
         var rect = event.target.getBoundingClientRect();
@@ -311,6 +326,16 @@ export default class SketchblocksEditor
     private onDocumentMouseDown(event: any) 
     {
         if (event.target !== this.renderer.domElement) return;
+
+        for (let i = this.threeLayers.length - 1; i >= 0; --i)
+        {
+            if (this.threeLayers[i].onMouseDown(event)) 
+            {
+                event.preventDefault();
+                return;
+            }
+        }
+
         if (!this.testPlaceCube.visible) return;
 
         event.preventDefault();

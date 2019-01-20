@@ -81,7 +81,14 @@ export default class FlicksyEditor
         utility.buttonClick("scene-maps-tab-button", () => this.setActivePanel(this.sceneMapsPanel));
 
         utility.buttonClick("stage-tab-button",  () => this.setActivePanel(this.stagesPanel));
-        utility.buttonClick("design-tab-button", () => this.setActivePanel(this.designsPanel));  
+        utility.buttonClick("design-tab-button", () => 
+        {
+            this.setActivePanel(this.designsPanel);
+            this.designsPanel.startPickingBlock(design => {
+                this.sketchblocks.block = design;
+                this.setActivePanel(this.stagesPanel);
+            })
+        });  
 
         // editor vs playback
         this.returnToEditorButton = utility.getElement("editor-button");
@@ -210,6 +217,7 @@ export default class FlicksyEditor
         this.publishPanel.hide();
         this.pickerPanel.hide();
 
+        this.sketchblocks.threeLayers.length = 0;
         this.stagesPanel.hide();
         this.designsPanel.hide();
     }

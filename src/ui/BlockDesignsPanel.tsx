@@ -4,14 +4,20 @@ import * as ReactDOM from 'react-dom';
 import * as utility from '../tools/utility';
 import FlicksyEditor from "./FlicksyEditor";
 import Panel from "./Panel";
-import { Group, Mesh, Vector3 } from 'three';
+import { Group, Mesh, Vector3, WebGLRenderer, Scene, Raycaster, Vector2 } from 'three';
+import BlockDesign from '../data/BlockDesign';
+import ThreeLayer from './ThreeLayer';
 
-export default class BlockDesignsPanel implements Panel
+export default class BlockDesignsPanel implements Panel, ThreeLayer
 {
     private readonly sidebar: HTMLElement;
     private readonly group = new Group();
 
     private readonly meshes: Mesh[] = [];
+
+    private onDesignPicked: (design: number) => void | undefined;
+
+    private scene = new Scene();
 
     public constructor(private readonly editor: FlicksyEditor)
     {
@@ -28,21 +34,67 @@ export default class BlockDesignsPanel implements Panel
 
         ReactDOM.render(sidebar, this.sidebar);
 
-        editor.sketchblocks.scene.add(this.group);
+        this.scene.add(this.group);
+    }
 
-        editor.pixi.ticker.add(dt => this.update(dt));
+    public startPickingBlock(callback: (block: number) => void): void
+    {
+        this.onDesignPicked = callback;
+    }
+
+    public get priority(): number
+    {
+        return 1;
     }
 
     private rotation: number = 0;
-    private update(dt: number): void
+    public update(dt: number): void
     {
         const up = new Vector3(0, 1, 0);
-        this.rotation = (this.rotation + (dt / 60) * Math.PI) % (Math.PI * 2);
+        this.rotation = (this.rotation + dt  * Math.PI) % (Math.PI * 2);
 
         this.meshes.forEach(mesh =>
         {
             mesh.setRotationFromAxisAngle(up, this.rotation);
         });
+    }
+
+    public render(renderer: WebGLRenderer): void
+    {
+        renderer.render(this.scene, this.editor.sketchblocks.camera, undefined, true);
+    }
+
+    public onMouseDown(event: MouseEvent): boolean
+    {
+        const [mx, my] = this.editor.sketchblocks.getMousePosition(event);
+        const mouse = new Vector2();
+        mouse.set(mx * 2 - 1, -my * 2 + 1);
+
+        const raycaster = new Raycaster();
+        raycaster.setFromCamera(mouse, this.editor.sketchblocks.camera);
+
+        var intersects = raycaster.intersectObjects(this.group.children, true);
+
+        if (intersects.length > 0)
+        {
+            const design = intersects[0].object.userData.design as number;
+
+            if (this.onDesignPicked)
+            {
+                this.onDesignPicked(design);
+            }
+            else
+            {
+                this.editor.sketchblocks.block = design;
+            }
+        }
+
+        return true;
+    }
+
+    public onMouseUp(event: MouseEvent): boolean
+    {
+        return false;
     }
 
     public refresh(): void
@@ -57,11 +109,12 @@ export default class BlockDesignsPanel implements Panel
         designs.forEach((design, i) =>
         {
             const mesh = new Mesh(design.geometry, material);
+            mesh.userData.design = i;
             this.group.add(mesh);
             this.meshes.push(mesh);
 
             mesh.setRotationFromAxisAngle(up, this.rotation);
-            mesh.position.setX((i - 2.5) * 2).setY(4);
+            mesh.position.setX((i - 2.5) * 2);
         });
     }
 
@@ -69,7 +122,9 @@ export default class BlockDesignsPanel implements Panel
     {
         this.sidebar.hidden = false;
         this.group.visible = true;
+
         this.editor.setThree();
+        this.editor.sketchblocks.threeLayers.push(this);
     }
 
     public hide(): void
