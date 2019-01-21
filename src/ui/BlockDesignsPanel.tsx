@@ -4,8 +4,7 @@ import * as ReactDOM from 'react-dom';
 import * as utility from '../tools/utility';
 import FlicksyEditor from "./FlicksyEditor";
 import Panel from "./Panel";
-import { Group, Mesh, Vector3, WebGLRenderer, Scene, Raycaster, Vector2 } from 'three';
-import BlockDesign from '../data/BlockDesign';
+import { Group, Mesh, Vector3, WebGLRenderer, Scene, Raycaster, Vector2, OrthographicCamera } from 'three';
 import ThreeLayer from './ThreeLayer';
 
 export default class BlockDesignsPanel implements Panel, ThreeLayer
@@ -17,7 +16,8 @@ export default class BlockDesignsPanel implements Panel, ThreeLayer
 
     private onDesignPicked: (design: number) => void | undefined;
 
-    private scene = new Scene();
+    private readonly scene = new Scene();
+    private readonly camera: OrthographicCamera;
 
     public constructor(private readonly editor: FlicksyEditor)
     {
@@ -34,7 +34,12 @@ export default class BlockDesignsPanel implements Panel, ThreeLayer
 
         ReactDOM.render(sidebar, this.sidebar);
 
+        const scale = 1 / 2;
+
         this.scene.add(this.group);
+        this.camera = new OrthographicCamera(-16 * scale, 16 * scale, 10 * scale, -10 * scale);
+        this.camera.position.set(0, 0, -1);
+        this.camera.lookAt(0, 0, 0);
     }
 
     public startPickingBlock(callback: (block: number) => void): void
@@ -51,17 +56,18 @@ export default class BlockDesignsPanel implements Panel, ThreeLayer
     public update(dt: number): void
     {
         const up = new Vector3(0, 1, 0);
-        this.rotation = (this.rotation + dt  * Math.PI) % (Math.PI * 2);
+        this.rotation = (this.rotation + dt  * Math.PI) % (Math.PI * 4);
 
         this.meshes.forEach(mesh =>
         {
             mesh.setRotationFromAxisAngle(up, this.rotation);
+            mesh.rotateOnWorldAxis(new Vector3(1, 0, 0), this.rotation * .5);
         });
     }
 
     public render(renderer: WebGLRenderer): void
     {
-        renderer.render(this.scene, this.editor.sketchblocks.camera, undefined, true);
+        renderer.render(this.scene, this.camera, undefined, true);
     }
 
     public onMouseDown(event: MouseEvent): boolean
