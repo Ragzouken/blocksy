@@ -6,7 +6,7 @@ import * as utility from '../tools/utility';
 import Panel from "./Panel";
 import FlicksyEditor from "./FlicksyEditor";
 import ThreeLayer from './ThreeLayer';
-import { WebGLRenderer } from 'three';
+import { WebGLRenderer, Scene, GridHelper } from 'three';
 import PivotCamera from '../tools/PivotCamera';
 
 export default class StagesPanel implements Panel, ThreeLayer
@@ -14,6 +14,8 @@ export default class StagesPanel implements Panel, ThreeLayer
     private readonly sidebar: HTMLElement;
 
     private readonly pivotCamera = new PivotCamera();
+
+    private readonly scene = new Scene();
 
     public constructor(private readonly editor: FlicksyEditor)
     {
@@ -34,6 +36,10 @@ export default class StagesPanel implements Panel, ThreeLayer
         root.appendChild(this.sidebar);
 
         ReactDOM.render(sidebar, this.sidebar);
+        
+        // grid renderer
+        const gridRenderer = new GridHelper(16, 16);
+        this.scene.add(gridRenderer);
     }
 
     public show(): void
@@ -93,7 +99,7 @@ export default class StagesPanel implements Panel, ThreeLayer
 
     public render(renderer: WebGLRenderer): void
     {
-
+        renderer.render(this.scene, this.editor.sketchblocks.camera);
     }
 
     onMouseDown(event: MouseEvent): boolean 

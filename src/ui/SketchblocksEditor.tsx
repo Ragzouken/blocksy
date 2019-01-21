@@ -85,6 +85,7 @@ export default class SketchblocksEditor
         // renderer
         this.renderer = new WebGLRenderer({ antialias: false });
         this.renderer.setPixelRatio(window.devicePixelRatio);
+        this.renderer.autoClear = false;
         getElement("three").appendChild(this.renderer.domElement);
 
         // camera
@@ -147,10 +148,6 @@ export default class SketchblocksEditor
         document.addEventListener('mousedown', event => this.onDocumentMouseDown(event), false);
         window.addEventListener("blur", event => this.keys.clear());
 
-        // grid renderer
-        const gridRenderer = new GridHelper(16, 16);
-        this.scene.add(gridRenderer);
-
         // lights
         /*
         const ambientLight = new AmbientLight(0x606060);
@@ -177,6 +174,7 @@ export default class SketchblocksEditor
 
     public render(): void
     {
+        this.renderer.clear();
         this.renderer.render(this.scene, this.camera);
 
         this.threeLayers.forEach(layer => layer.render(this.renderer));
