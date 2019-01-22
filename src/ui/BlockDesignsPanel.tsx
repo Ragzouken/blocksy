@@ -77,7 +77,7 @@ export default class BlockDesignsPanel implements Panel, ThreeLayer
         mouse.set(mx * 2 - 1, -my * 2 + 1);
 
         const raycaster = new Raycaster();
-        raycaster.setFromCamera(mouse, this.editor.sketchblocks.camera);
+        raycaster.setFromCamera(mouse, this.camera);
 
         var intersects = raycaster.intersectObjects(this.group.children, true);
 
@@ -108,13 +108,12 @@ export default class BlockDesignsPanel implements Panel, ThreeLayer
         this.meshes.forEach(mesh => this.group.remove(mesh));
         this.meshes.length = 0;
 
-        const designs = this.editor.sketchblocks.project.blocksets[0].designs;
-        const material = this.editor.sketchblocks.testMaterial;
+        const blockset = this.editor.sketchblocks.project.blocksets[0];
         const up = new Vector3(0, 1, 0);
 
-        designs.forEach((design, i) =>
+        blockset.designs.forEach((design, i) =>
         {
-            const mesh = new Mesh(design.geometry, material);
+            const mesh = new Mesh(design.geometry, blockset.material);
             mesh.userData.design = i;
             this.group.add(mesh);
             this.meshes.push(mesh);

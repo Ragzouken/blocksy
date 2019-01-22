@@ -2,6 +2,7 @@ import Stage, { Block } from "../data/Stage";
 import SketchblocksEditor from "./SketchblocksEditor";
 import ModelViewMapping, { View } from "../tools/ModelViewMapping";
 import { Mesh, Vector3, Group } from "three";
+import StagesPanel from "./StagesPanel";
 
 class BlockView implements View<Block>
 {
@@ -17,7 +18,7 @@ class BlockView implements View<Block>
             orientation: 0,
         }
 
-        this.mesh = new Mesh(undefined, this.stageView.editor.testMaterial);
+        this.mesh = new Mesh(undefined, this.stageView.stage.blockset.material);
         this.stageView.group.add(this.mesh);
     }
 
@@ -41,12 +42,12 @@ export default class StageView
 
     public readonly group = new Group();
 
-    public constructor(readonly editor: SketchblocksEditor)
+    public constructor(readonly panel: StagesPanel)
     {
         this.blocks = new ModelViewMapping<Block, BlockView>(() => new BlockView(this),
                                                              (view, active) => view.setActive(active));
 
-        this.editor.scene.add(this.group);
+        this.panel.scene.add(this.group);
     }
 
     public setStage(stage: Stage): void

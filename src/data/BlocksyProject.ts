@@ -19,8 +19,7 @@ export default class BlocksyProject
 
         this.shapes = data.shapes.map(shape => new BlockShape().fromData(shape));
         this.blocksets = data.blocksets.map(d => new Blockset().fromData(d, this.shapes));
-        // TODO: load stage...
-        this.stages = data.stages.map(d => new Stage());
+        this.stages = data.stages.map(d => new Stage().fromData(d, this));
 
         return this;
     }

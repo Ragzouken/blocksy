@@ -1,7 +1,8 @@
 import { Vector3 } from "three";
 import { randomInt } from "../tools/utility";
-import { StageData } from "./BlocksyData";
+import { StageData, Vector3Data } from "./BlocksyData";
 import Blockset from "./Blockset";
+import BlocksyProject from "./BlocksyProject";
 
 export interface Block
 {
@@ -25,8 +26,31 @@ export default class Stage
             uuid: this.uuid,
 
             blockset: this.blockset.uuid,
-            blocks: [],
+            blocks: Array.from(this.blocks.values()).map(block => ({
+                design: block.designID,
+                position: block.position.toArray() as Vector3Data,
+                rotation: block.orientation,
+            })),
         }
+    }
+
+    public fromData(data: StageData, project: BlocksyProject): this
+    {
+        this.name = data.name;
+        this.uuid = data.uuid;
+
+        this.blockset = project.blocksets.find(set => set.uuid == data.blockset)!;
+        data.blocks.forEach(block =>
+        {
+            const index = block.position.join(",");
+            this.blocks.set(index, {
+                designID: block.design,
+                position: new Vector3(...block.position),
+                orientation: block.rotation,
+            });
+        });
+
+        return this;
     }
 }
 

@@ -34,10 +34,10 @@ export default class PublishPanel implements Panel
 
         const audioInput: HTMLInputElement = getElement("export-audio");
 
-        buttonClick("export-playable", () => exportPlayable(editor.project));
+        buttonClick("export-playable", () => exportPlayable(editor.sketchblocks.project));
         buttonClick("download-data", () => 
         {
-            const json = projectToJson(editor.project);
+            const json = projectToJson(editor.sketchblocks.project);
             const blob = new Blob([json], {type: "application/json"});
             FileSaver.saveAs(blob, "project.flicksy.json");
         });
@@ -60,13 +60,13 @@ export default class PublishPanel implements Panel
         });
         buttonClick("export-zip", () =>
         {
-            const name = filesafeName(editor.project);
+            const name = filesafeName(editor.sketchblocks.project);
 
             const zip = new JSZip();
             const folder = zip.folder(name);
             
             const audio = audioInput.files![0];
-            const htmlblob = playableHTMLBlob(editor.project, audio.name);
+            const htmlblob = playableHTMLBlob(editor.sketchblocks.project, audio.name);
 
             folder.file("index.html", htmlblob);
 

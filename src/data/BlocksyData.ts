@@ -31,7 +31,7 @@ export interface BlockDesignData
     name: string;
 
     shape: string;
-    faces: number[];
+    faces: [string, number][];
 }
 
 export interface TextureData

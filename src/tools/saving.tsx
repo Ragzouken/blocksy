@@ -1,26 +1,27 @@
 import * as FileSaver from 'file-saver';
 import * as localForage from 'localforage';
 import { v4 as uuid4 } from 'uuid';
-import { FlicksyProject, FlicksyProjectData } from "../data/FlicksyProject";
 import { base64ToUint8, uint8ToBase64 } from "./base64";
 import * as utility from './utility';
+import BlocksyProject from '../data/BlocksyProject';
+import { BlocksyProjectData } from '../data/BlocksyData';
+import { FlicksyProject } from '../data/FlicksyProject';
+import { createBlankProject } from './ProjectTools';
 
-const blocksyVersion = "alpha-1";
-
-export function repairProject(project: FlicksyProject): void
+export function repairProject(project: BlocksyProject): void
 {
     
 }
 
-export async function loadProjectFromUUID(uuid: string): Promise<FlicksyProject>
+export async function loadProjectFromUUID(uuid: string): Promise<BlocksyProject>
 {
-    const data = await localForage.getItem<FlicksyProjectData>(`projects/${uuid}`);
+    const data = await localForage.getItem<BlocksyProjectData>(`projects/${uuid}`);
     const project = loadProject(data);
     
     return project;
 }
 
-export function jsonToProject(json: string): FlicksyProject
+export function jsonToProject(json: string): BlocksyProject
 {
     const data = jsonToProjectData(json);
     const project = loadProject(data);
@@ -28,12 +29,12 @@ export function jsonToProject(json: string): FlicksyProject
     return project;
 }
 
-export function projectToJson(project: FlicksyProject): string
+export function projectToJson(project: BlocksyProject): string
 {
     return projectDataToJson(project.toData());
 }
 
-export function fileToProject(file: File): Promise<FlicksyProject>
+export function fileToProject(file: File): Promise<BlocksyProject>
 {
     return new Promise((resolve, reject) =>
     {
@@ -50,7 +51,7 @@ export function fileToProject(file: File): Promise<FlicksyProject>
     });
 }
 
-export function projectDataToJson(data: FlicksyProjectData): string
+export function projectDataToJson(data: BlocksyProjectData): string
 {
     const json = JSON.stringify(data, (key, value) =>
     {
@@ -67,7 +68,7 @@ export function projectDataToJson(data: FlicksyProjectData): string
     return json;
 } 
 
-export function jsonToProjectData(json: string): FlicksyProjectData
+export function jsonToProjectData(json: string): BlocksyProjectData
 {
     const data = JSON.parse(json, (key, value) =>
     {
@@ -89,8 +90,6 @@ export function newProject(): FlicksyProject
     project.name = "unnamed project";
     project.uuid = uuid4();
     
-    project.blocksyVersion = blocksyVersion;
-    
     project.createDrawingBoard();
     project.createSceneBoard();
     project.createScene();
@@ -102,9 +101,9 @@ export function newProject(): FlicksyProject
     return project;
 }
 
-export function loadProject(data: FlicksyProjectData): FlicksyProject
+export function loadProject(data: BlocksyProjectData): BlocksyProject
 {
-    const project = new FlicksyProject();
+    const project = new BlocksyProject();
     project.fromData(data);
 
     repairProject(project);
@@ -129,7 +128,7 @@ export async function getProjectList(): Promise<ProjectInfo[]>
 }
 
 /** Save the given project locally and update the saved projects listing */
-export async function saveProject(project: FlicksyProject): Promise<void>
+export async function saveProject(project: BlocksyProject): Promise<void>
 {
     // save the project as it was at the time the save button was clicked
     const data = project.toData();
@@ -161,7 +160,7 @@ export async function saveProject(project: FlicksyProject): Promise<void>
     await localForage.setItem("last-open", project.uuid);
 }
 
-export async function findProject(): Promise<FlicksyProject>
+export async function findProject(): Promise<BlocksyProject>
 {
     // check if there are any saved project listings
     const listing = await getProjectList();
@@ -172,7 +171,7 @@ export async function findProject(): Promise<FlicksyProject>
         // first entry. return the loaded project if it exists
         const last = await localForage.getItem<string>("last-open");
         const uuid = last || listing[0].uuid;
-        const data = await localForage.getItem<FlicksyProjectData>(`projects/${uuid}`);
+        const data = await localForage.getItem<BlocksyProjectData>(`projects/${uuid}`);
 
         if (data)
         {
@@ -181,7 +180,7 @@ export async function findProject(): Promise<FlicksyProject>
     }
 
     // there are no existing saves, so create a new project
-    return newProject();
+    return createBlankProject();
 }
 
 export function randomisePalette(project: FlicksyProject): void
@@ -198,7 +197,7 @@ export function randomisePalette(project: FlicksyProject): void
     }
 }
 
-export async function playableHTMLBlob(project: FlicksyProject,
+export async function playableHTMLBlob(project: BlocksyProject,
                                        audio?: string): Promise<Blob> 
 {
     // clones the page and inlines the css, javascript, and project data
@@ -259,7 +258,7 @@ export async function playableHTMLBlob(project: FlicksyProject,
     return new Blob([html.innerHTML], {type: "text/html"});
 }
 
-export async function exportPlayable(project: FlicksyProject)
+export async function exportPlayable(project: BlocksyProject)
 {
     // save html
     const name = filesafeName(project);
@@ -269,7 +268,7 @@ export async function exportPlayable(project: FlicksyProject)
     return;
 }
 
-export function filesafeName(project: FlicksyProject): string
+export function filesafeName(project: BlocksyProject): string
 {
     return project.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 }

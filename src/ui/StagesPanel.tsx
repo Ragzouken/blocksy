@@ -6,16 +6,18 @@ import * as utility from '../tools/utility';
 import Panel from "./Panel";
 import FlicksyEditor from "./FlicksyEditor";
 import ThreeLayer from './ThreeLayer';
-import { WebGLRenderer, Scene, GridHelper } from 'three';
+import { WebGLRenderer, Scene, GridHelper, PerspectiveCamera } from 'three';
 import PivotCamera from '../tools/PivotCamera';
 
 export default class StagesPanel implements Panel, ThreeLayer
 {
     private readonly sidebar: HTMLElement;
 
+    // TODO: make private... move?
+    public readonly camera: PerspectiveCamera;
     private readonly pivotCamera = new PivotCamera();
 
-    private readonly scene = new Scene();
+    public readonly scene = new Scene();
 
     public constructor(private readonly editor: FlicksyEditor)
     {
@@ -36,7 +38,13 @@ export default class StagesPanel implements Panel, ThreeLayer
         root.appendChild(this.sidebar);
 
         ReactDOM.render(sidebar, this.sidebar);
-        
+
+        // camera
+        // TODO: check aspect ratio
+        this.camera = new PerspectiveCamera(45, 320 / 240, 1, 10000);
+        this.camera.position.set(0, 8, 13);
+        this.camera.lookAt(0, 0, 0);
+
         // grid renderer
         const gridRenderer = new GridHelper(16, 16);
         this.scene.add(gridRenderer);
@@ -94,21 +102,24 @@ export default class StagesPanel implements Panel, ThreeLayer
             this.pivotCamera.distance -= 8 * dt;
         }
 
-        this.pivotCamera.setCamera(this.editor.sketchblocks.camera);
+        this.pivotCamera.setCamera(this.camera);
     }
 
     public render(renderer: WebGLRenderer): void
     {
-        renderer.render(this.scene, this.editor.sketchblocks.camera);
+        this.camera.aspect = 320 / 200;
+        this.camera.updateProjectionMatrix();
+
+        renderer.render(this.scene, this.camera);
     }
 
     onMouseDown(event: MouseEvent): boolean 
     {
-        throw new Error("Method not implemented.");
+        return false;
     }
 
     onMouseUp(event: MouseEvent): boolean
     {
-        throw new Error("Method not implemented.");
+        return false;
     }
 }

@@ -13,6 +13,7 @@ import ScenesPanel from './ScenesPanel';
 import SketchblocksEditor from './SketchblocksEditor';
 import StagesPanel from './StagesPanel';
 import BlockDesignsPanel from './BlockDesignsPanel';
+import BlocksyProject from '../data/BlocksyProject';
 
 export default class FlicksyEditor
 {
@@ -41,12 +42,11 @@ export default class FlicksyEditor
 
     public constructor(private sidebarContainer: HTMLElement,
                        private canvasContainer: HTMLElement,
-                       public resolution: [number, number])
+                       public resolution: [number, number],
+                       public readonly blocksyProject: BlocksyProject)
     {
         this.pixiCanvasContainer = document.getElementById("container")! as HTMLDivElement;
         
-        this.sketchblocks = new SketchblocksEditor(this);
-
         // transparent prevents flickering on silk browser
         this.pixi = new Pixi.Application(this.resolution[0], 
                                          this.resolution[1], 
@@ -57,7 +57,7 @@ export default class FlicksyEditor
         this.pixi.start();
 
         this.pixiCanvas = this.pixi.view;
-        this.threeCanvas = this.sketchblocks.renderer.domElement;
+        
 
         // create all the other ui
         this.projectsPanel = new ProjectsPanel(this);
@@ -69,6 +69,9 @@ export default class FlicksyEditor
         this.stagesPanel = new StagesPanel(this);
         this.designsPanel = new BlockDesignsPanel(this);
 
+        this.sketchblocks = new SketchblocksEditor(this);
+        this.threeCanvas = this.sketchblocks.renderer.domElement;
+        
         this.setActivePanel(this.projectsPanel);
 
         // tabs
@@ -253,7 +256,7 @@ export default class FlicksyEditor
 
         // guaranteed saving takes enough time to see that it happened
         const delay = utility.delay(500);
-        await saveProject(this.project);
+        await saveProject(this.sketchblocks.project);
         await delay;
 
         // show saved confirmation briefly
@@ -277,9 +280,6 @@ export default class FlicksyEditor
         const w = 320;
         const h = 200;
 
-        this.sketchblocks.camera.aspect = w / h;
-        this.sketchblocks.camera.updateProjectionMatrix();
-    
         this.sketchblocks.renderer.setSize(w, h, false);
         //this.renderer.setViewport(10, 10, 320, 240);
     }

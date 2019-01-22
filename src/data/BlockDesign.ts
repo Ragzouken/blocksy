@@ -10,6 +10,8 @@ export default class BlockDesign
     public name = "invalid design";
 
     private shape: BlockShape;
+    public readonly faces = new Map<string, number>();
+
     public texcoordBuffer: BufferAttribute;
     public geometry = new BufferGeometry();
 
@@ -35,11 +37,9 @@ export default class BlockDesign
 
         this.setShape(shape);
 
-        const bla = Array.from(this.shape.faces.keys());
-
-        data.faces.forEach((tileID, index) =>
+        data.faces.forEach(([faceID, tileID]) =>
         {
-            this.setFaceTile(bla[index], ...blockset.getTileTexccords(tileID));
+            this.setFaceTile(faceID, blockset, tileID);
         });
 
         return this;
@@ -50,13 +50,19 @@ export default class BlockDesign
         return {
             name: this.name,
             shape: this.shape.uuid,
-            faces: [],
+            faces: Array.from(this.faces),
         };
     }
 
-    public setFaceTile(faceID: string, 
-                       xmin: number, ymin: number, 
-                       xmax: number, ymax: number): void 
+    public setFaceTile(faceID: string, blockset: Blockset, tileID: number): void
+    {
+        this.faces.set(faceID, tileID);
+        this.setFaceTile_(faceID, ...blockset.getTileTexccords(tileID));
+    } 
+
+    public setFaceTile_(faceID: string, 
+                        xmin: number, ymin: number, 
+                        xmax: number, ymax: number): void 
     {
         const face = this.shape.faces.get(faceID)!;
         const base = this.shape.texcoords;

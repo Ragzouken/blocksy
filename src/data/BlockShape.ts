@@ -59,11 +59,7 @@ export default class BlockShape
                 this.texcoords.push(...face.texturing[i]);
                 this.normals.push(normal.x, normal.y, normal.z);
             }
-
-            face.triangles.forEach(_ => this.tri2face.push(face.name));
         });
-
-        this.positions.forEach((v, i) => this.positions[i] = v - .5);
 
         // threejs stuff
         this.positionBuffer = new Float32BufferAttribute(this.positions, 3);
@@ -79,6 +75,8 @@ export default class BlockShape
         this.faces.forEach((indexes, name) =>
         {
             const min = Math.min(...indexes);
+            const max = Math.max(...indexes);
+            const count = max - min + 1;
             indexes = indexes.map(index => index - min);
 
             const face: BlockShapeFaceData =
@@ -89,13 +87,14 @@ export default class BlockShape
                 triangles: [],
             }
 
-            for (let i = 0; i < this.vertexCount; ++i)
+            for (let i = 0; i < count; ++i)
             {
-                face.positions.push(this.positions.slice(i * 3, i * 3 + 3) as Vector3Data);
-                face.texturing.push(this.texcoords.slice(i * 2, i * 2 + 2) as Vector2Data);
+                const j = i + min;
+                face.positions.push(this.positions.slice(j * 3, j * 3 + 3) as Vector3Data);
+                face.texturing.push(this.texcoords.slice(j * 2, j * 2 + 2) as Vector2Data);
             }
 
-            for (let i = 0; i < this.indices.length; i += 1)
+            for (let i = 0; i < indexes.length; i += 3)
             {
                 face.triangles.push(indexes.slice(i, i + 3) as Vector3Data);
             }

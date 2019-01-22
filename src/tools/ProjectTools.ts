@@ -18,11 +18,23 @@ export function createBlankProject(): BlocksyProject
     project.shapes.push(new BlockShape().fromData(Cube), 
                         new BlockShape().fromData(Ramp));
 
+    project.shapes.forEach(shape =>
+    {
+        shape.positions.forEach((v, i) =>
+        {
+            shape.positions[i] = v - .5;
+        });
+
+        shape.positionBuffer.set(shape.positions);
+        shape.positionBuffer.needsUpdate = true;
+    });
+
     const blockset = new Blockset();
     blockset.name = "Unnamed Blockset";
     blockset.uuid = uuid4();
 
-    blockset.texture = new MTexture(128, 128);
+    blockset.setTexture(new MTexture(128, 128));
+
     for (let i = 0; i < 1024; ++i)
     {
         const x = randomInt(0, 127);
@@ -31,31 +43,35 @@ export function createBlankProject(): BlocksyProject
         blockset.texture.context.fillStyle = rgb2hex([x, y, 128]);
         blockset.texture.context.fillRect(x, y, 16, 16);
     }
+
     blockset.texture.fetch();
     
     for (let i = 0; i < 3; ++i)
     {
-        const data: BlockDesignData = {
-            name: `Cube {i}`,
-            shape: project.shapes[0].uuid,
-            faces: [randomInt(0, 16), randomInt(0, 16), randomInt(0, 16), 
-                    randomInt(0, 16), randomInt(0, 16), randomInt(0, 16)],
-        }
-
-        const cube = new BlockDesign().fromData(data, project.shapes, blockset);
+        const cube = new BlockDesign();
+        cube.name = `Cube ${i}`;
+        cube.setShape(project.shapes[0]);
+        cube.setFaceTile("front",  blockset, randomInt(0, 16));
+        cube.setFaceTile("back",   blockset, randomInt(0, 16));
+        cube.setFaceTile("left",   blockset, randomInt(0, 16));
+        cube.setFaceTile("right",  blockset, randomInt(0, 16));
+        cube.setFaceTile("top",    blockset, randomInt(0, 16));
+        cube.setFaceTile("bottom", blockset, randomInt(0, 16));
+        
         blockset.designs.push(cube);
     }
 
     for (let i = 0; i < 3; ++i)
     {
-        const data: BlockDesignData = {
-            name: `Ramp {i}`,
-            shape: project.shapes[1].uuid,
-            faces: [randomInt(0, 16), randomInt(0, 16), randomInt(0, 16), 
-                    randomInt(0, 16), randomInt(0, 16)],
-        }
-
-        const ramp = new BlockDesign().fromData(data, project.shapes, blockset);
+        const ramp = new BlockDesign();
+        ramp.name = `Ramp ${i}`;
+        ramp.setShape(project.shapes[1]);
+        ramp.setFaceTile("slope",  blockset, randomInt(0, 16));
+        ramp.setFaceTile("back",   blockset, randomInt(0, 16));
+        ramp.setFaceTile("left",   blockset, randomInt(0, 16));
+        ramp.setFaceTile("right",  blockset, randomInt(0, 16));
+        ramp.setFaceTile("bottom", blockset, randomInt(0, 16));
+        
         blockset.designs.push(ramp);
     }
 

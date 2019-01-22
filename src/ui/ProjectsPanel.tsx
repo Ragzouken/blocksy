@@ -19,7 +19,7 @@ export default class ProjectsPanel implements Panel
         {
             if (files && files[0])
             {
-                fileToProject(files[0]).then(project => this.editor.setProject(project));
+                //fileToProject(files[0]).then(project => this.editor.setProject(project));
             }
         };
 
@@ -27,7 +27,7 @@ export default class ProjectsPanel implements Panel
         {
             loadProjectFromUUID(this.projectSelect.value).then(project =>
             {
-                this.editor.setProject(project);
+                //this.editor.setProject(project);
             });
         };
 

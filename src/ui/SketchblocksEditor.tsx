@@ -10,7 +10,6 @@ export default class SketchblocksEditor
 {
     public readonly clock: Clock;
     public readonly renderer: WebGLRenderer;
-    public readonly camera: PerspectiveCamera;
     public readonly scene: Scene;
 
     private readonly stageView: StageView;
@@ -18,9 +17,6 @@ export default class SketchblocksEditor
     public readonly keys = new Map<string, boolean>();
 
     public block = 0;
-
-    public testTexture: CanvasTexture;
-    public testMaterial: Material;
 
     public project: BlocksyProject;
 
@@ -87,12 +83,6 @@ export default class SketchblocksEditor
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.autoClear = false;
         getElement("three").appendChild(this.renderer.domElement);
-
-        // camera
-        // TODO: check aspect ratio
-        this.camera = new PerspectiveCamera(45, 320 / 240, 1, 10000);
-        this.camera.position.set(0, 8, 13);
-        this.camera.lookAt(0, 0, 0);
         
         this.resizeThreeCanvas();
 
@@ -101,23 +91,10 @@ export default class SketchblocksEditor
 
         this.animate();
 
-        const texsize = 16;
-
-        this.project = createBlankProject();
-
-        this.testTexture = new CanvasTexture(this.project.blocksets[0].texture.canvas, 
-                                          undefined, 
-                                          ClampToEdgeWrapping,
-                                          ClampToEdgeWrapping, 
-                                          NearestFilter, 
-                                          NearestFilter);
-
-        this.testMaterial = new MeshBasicMaterial({ color: 0xffffff, map: this.testTexture });
-        this.testTexture.needsUpdate = true;
-        this.project.blocksets[0].texture.canvas.addEventListener("flush", () => this.testTexture.needsUpdate = true);
+        this.project = this.editor2.blocksyProject; //createBlankProject();
 
         // test stage
-        this.stageView = new StageView(this);
+        this.stageView = new StageView(this.editor2.stagesPanel);
         this.stageView.setStage(this.project.stages[0]);
 
         // cursor
@@ -175,14 +152,8 @@ export default class SketchblocksEditor
     public render(): void
     {
         this.renderer.clear();
-        this.renderer.render(this.scene, this.camera);
-
+        this.renderer.render(this.scene, this.editor2.stagesPanel.camera);
         this.threeLayers.forEach(layer => layer.render(this.renderer));
-    }
-
-    public testMakeBlock(): Mesh
-    {
-        return new Mesh(this.stageView.stage.blockset.designs[this.block % 2].geometry, this.testMaterial);
     }
 
     private resizeThreeCanvas(): void
@@ -190,9 +161,6 @@ export default class SketchblocksEditor
         // TODO: need to center viewport correctly
         const w = 320;
         const h = 200;
-
-        this.camera.aspect = w / h;
-        this.camera.updateProjectionMatrix();
     
         this.renderer.setSize(w, h, false);
         //this.renderer.setViewport(10, 10, 320, 240);
@@ -209,7 +177,7 @@ export default class SketchblocksEditor
         mouse.set(mx * 2 - 1, -my * 2 + 1);
 
         const raycaster = new Raycaster();
-        raycaster.setFromCamera(mouse, this.camera);
+        raycaster.setFromCamera(mouse, this.editor2.stagesPanel.camera);
 
         var intersects = raycaster.intersectObjects([this.gridCollider, this.stageView.group], true);
 
