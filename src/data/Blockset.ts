@@ -26,6 +26,8 @@ export default class Blockset
                                           NearestFilter, 
                                           NearestFilter);
         this.material.setValues({map: this.texture3});
+        this.material.alphaTest = .5;
+        this.material.transparent = true;
 
         this.texture.canvas.addEventListener("flush", () => this.texture3.needsUpdate = true);
     }
