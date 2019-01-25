@@ -6,9 +6,10 @@ import * as utility from '../tools/utility';
 import Panel from "./Panel";
 import FlicksyEditor from "./FlicksyEditor";
 import ThreeLayer from './ThreeLayer';
-import { WebGLRenderer, Scene, GridHelper, PerspectiveCamera, MOUSE } from 'three';
+import { WebGLRenderer, Scene, GridHelper, PerspectiveCamera, MOUSE, CanvasTexture, UVMapping, ClampToEdgeWrapping, NearestFilter, BoxBufferGeometry, MeshBasicMaterial, Mesh, DoubleSide } from 'three';
 import { OrbitControls } from 'three-orbitcontrols-ts';
 import PivotCamera from '../tools/PivotCamera';
+import { MTexture } from '../tools/MTexture';
 
 export default class StagesPanel implements Panel, ThreeLayer
 {
@@ -20,6 +21,7 @@ export default class StagesPanel implements Panel, ThreeLayer
     private readonly orbitControls: OrbitControls;
 
     public readonly scene = new Scene();
+    public readonly cursor: Mesh; // TODO: not public obv...
 
     public constructor(private readonly editor: FlicksyEditor)
     {
@@ -28,10 +30,9 @@ export default class StagesPanel implements Panel, ThreeLayer
                 <h1>stages</h1>
                 <p>build with blocks</p>
                 <h2>controls</h2>
-                AD - rotate camera<br/>
-                WS - raise/lower camera<br/>
-                QE - zoom camera<br/>
-                ZX - rotate highlighted blocky
+                left-click - place block<br/>
+                right-click drag - rotate camera<br/>
+                ZX - rotate highlighted block
             </div>
         </>;
 
@@ -54,6 +55,28 @@ export default class StagesPanel implements Panel, ThreeLayer
         // grid renderer
         const gridRenderer = new GridHelper(16, 16);
         this.scene.add(gridRenderer);
+
+        // cursors
+        const cursorTexture = new MTexture(16, 16);
+        cursorTexture.fill(utility.rgb2num(255, 255, 255));
+        cursorTexture.context.globalCompositeOperation = "destination-out";
+        cursorTexture.context.strokeStyle = "#ffffff";
+        //cursorTexture.context.globalAlpha = 0;
+        cursorTexture.context.fillRect(2, 2, 12, 12);
+        const cursorTexture3 = new CanvasTexture(cursorTexture.canvas, 
+                                                 UVMapping,
+                                                 ClampToEdgeWrapping,
+                                                 ClampToEdgeWrapping,
+                                                 NearestFilter,
+                                                 NearestFilter);
+        const cursorGeometry = new BoxBufferGeometry(1.1, 1.1, 1.1);
+        const cursorMaterial = new MeshBasicMaterial({ color: 0xffffff,
+                                                       map: cursorTexture3, 
+                                                       alphaTest: .5, 
+                                                       transparent: true,
+                                                       side: DoubleSide });
+        this.cursor = new Mesh(cursorGeometry, cursorMaterial);
+        this.scene.add(this.cursor);
     }
 
     public show(): void

@@ -1,14 +1,13 @@
 import Stage, { Block } from "../data/Stage";
-import SketchblocksEditor from "./SketchblocksEditor";
 import ModelViewMapping, { View } from "../tools/ModelViewMapping";
 import { Mesh, Vector3, Group } from "three";
-import StagesPanel from "./StagesPanel";
+import StagesPanel from "./StagesEditor";
 
 class BlockView implements View<Block>
 {
     public model: Block;
 
-    private mesh: Mesh;
+    public mesh: Mesh;
 
     public constructor(readonly stageView: StageView)
     {

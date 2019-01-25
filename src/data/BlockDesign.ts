@@ -9,7 +9,7 @@ export default class BlockDesign
 {
     public name = "invalid design";
 
-    private shape: BlockShape;
+    public shape: BlockShape;
     public readonly faces = new Map<string, number>();
 
     public texcoordBuffer: BufferAttribute;

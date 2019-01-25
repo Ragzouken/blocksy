@@ -46,6 +46,8 @@ export default class BlockShape
             this.indices.push(...faceIndexes);
             this.faces.set(face.name, faceIndexes);
 
+            face.triangles.forEach(_ => this.tri2face.push(face.name));
+
             // compute shared normal and add all positions/texcoords/normals
             const positions = face.positions.slice(0, 3).map(position => new Vector3(...position));
             

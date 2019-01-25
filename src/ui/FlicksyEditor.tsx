@@ -11,7 +11,7 @@ import PublishPanel from './PublishPanel';
 import SceneMapsPanel from './SceneMapsPanel';
 import ScenesPanel from './ScenesPanel';
 import SketchblocksEditor from './SketchblocksEditor';
-import StagesPanel from './StagesPanel';
+import StagesPanel from './StagesEditor';
 import BlockDesignsPanel from './BlockDesignsPanel';
 import BlocksyProject from '../data/BlocksyProject';
 
@@ -72,7 +72,7 @@ export default class FlicksyEditor
         this.sketchblocks = new SketchblocksEditor(this);
         this.threeCanvas = this.sketchblocks.renderer.domElement;
         
-        this.setActivePanel(this.projectsPanel);
+        this.setActivePanel(this.stagesPanel);
 
         // tabs
         utility.buttonClick("editor-button",         () => this.enterEditor());
@@ -82,6 +82,10 @@ export default class FlicksyEditor
         utility.buttonClick("drawing-tab-button",    () => this.setActivePanel(this.drawingBoardsPanel));
         utility.buttonClick("scene-tab-button",      () => this.setActivePanel(this.scenesPanel));
         utility.buttonClick("scene-maps-tab-button", () => this.setActivePanel(this.sceneMapsPanel));
+
+        utility.getElement("playtest-button").hidden = true;
+        utility.getElement("info-tab-button").hidden = true;
+        utility.getElement("publish-tab-button").hidden = true;
 
         utility.buttonClick("stage-tab-button",  () => this.setActivePanel(this.stagesPanel));
         utility.buttonClick("design-tab-button", () => 
@@ -135,6 +139,18 @@ export default class FlicksyEditor
 
         const drawing = this.drawingBoardsPanel.createNewDrawing(4 * 16, 4 * 16);
         drawing.drawing.texture = this.sketchblocks.project.blocksets[0].texture;
+
+        for (let y = 0; y < 8; ++y)
+        {
+            for (let x = 0; x < 8; ++x)
+            {
+                const tile1 = this.drawingBoardsPanel.createNewDrawing(16, 16);
+                tile1.drawing.texture = drawing.drawing.texture;
+                tile1.drawing.sprite = {x: x * 16, y: y * 16, w:16, h:16};
+                tile1.position.x = x * 20;
+                tile1.position.y = y * 20;
+            }
+        }
 
         this.refresh();
     }

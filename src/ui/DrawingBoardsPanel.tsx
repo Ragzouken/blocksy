@@ -250,16 +250,6 @@ export default class DrawingBoardsPanel implements Panel
         if (pin)
         {
             this.drawingNameInput.value = pin.drawing.name;
-
-            const texture = new CanvasTexture(pin.drawing.texture.canvas,undefined, 
-                ClampToEdgeWrapping,
-                ClampToEdgeWrapping, 
-                NearestFilter, 
-                NearestFilter);
-            //(this.editor.sketchblocks.testMaterial as any).map = texture;
-            //texture.needsUpdate = true;
-
-            //pin.drawing.texture.canvas.addEventListener("flush", () => texture.needsUpdate = true);
         }
     }
 
@@ -393,7 +383,7 @@ export default class DrawingBoardsPanel implements Panel
                 const localPrev = drag.current || drag.start;
                 const localNext = event.data.getLocalPosition(drag.view!.sprite);
 
-                this.draw(localPrev, localNext, drag.view!.model.drawing.texture);
+                this.draw(localPrev, localNext, drag.view!.model.drawing);
 
                 drag.current = localNext;
             }
@@ -457,7 +447,7 @@ export default class DrawingBoardsPanel implements Panel
                                        view);
             this.drags.set(event.data.identifier, drag);
 
-            this.draw(drag.current, drag.current, object.drawing.texture);
+            this.draw(drag.current, drag.current, object.drawing);
         }
 
         event.stopPropagation();
@@ -578,8 +568,21 @@ export default class DrawingBoardsPanel implements Panel
 
     private draw(prev: Point, 
                  next: Point,
-                 canvas: MTexture): void
+                 drawing: Drawing): void
     {
+        const canvas = drawing.texture;
+        
+        if (drawing.sprite)
+        {
+            prev = prev.clone();
+            next = next.clone();
+
+            prev.x += drawing.sprite.x;
+            prev.y += drawing.sprite.y;
+            next.x += drawing.sprite.x;
+            next.y += drawing.sprite.y;
+        }
+
         canvas.context.globalCompositeOperation = this.erasing ? "destination-out" : "source-over";
         canvas.sweepTest(Math.floor(prev.x), Math.floor(prev.y), 
                          Math.floor(next.x), Math.floor(next.y), 

@@ -1,4 +1,4 @@
-import { Graphics, Sprite } from "pixi.js";
+import { Graphics, Sprite, Texture, Rectangle } from "pixi.js";
 import { PositionedDrawing } from "../data/PositionedDrawing";
 import { View } from "../tools/ModelViewMapping";
 
@@ -72,7 +72,19 @@ export default class PositionedDrawingView<TObject extends PositionedDrawing> im
 
     public refresh(): void
     {
-        this.sprite.texture = this.object.drawing.texture.texture;
+        const sprite = this.object.drawing.sprite;
+
+        if (sprite)
+        {
+            const texture = new Texture(this.object.drawing.texture.texture.baseTexture,
+                                        new Rectangle(sprite.x, sprite.y, sprite.w, sprite.h));
+            this.sprite.texture = texture;
+        }
+        else
+        {
+            this.sprite.texture = this.object.drawing.texture.texture;
+        }
+
         this.sprite.position = this.object.position;
 
         this.refreshBorders();

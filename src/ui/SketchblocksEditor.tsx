@@ -1,4 +1,4 @@
-import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector3, Clock, Vector2, Euler, Material, CanvasTexture, ClampToEdgeWrapping, NearestFilter, MeshBasicMaterial, Mesh, Raycaster, BoxBufferGeometry, Object3D, PlaneBufferGeometry, CubeGeometry, GridHelper, AmbientLight, DirectionalLight, Texture } from 'three';
+import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector3, Clock, Vector2, Euler, Material, CanvasTexture, ClampToEdgeWrapping, NearestFilter, MeshBasicMaterial, Mesh, Raycaster, BoxBufferGeometry, Object3D, PlaneBufferGeometry, CubeGeometry, GridHelper, AmbientLight, DirectionalLight, Texture, BufferGeometry, BufferAttribute, LineBasicMaterial, Line } from 'three';
 import { getElement } from '../tools/utility';
 import StageView from './StageView';
 import FlicksyEditor from './FlicksyEditor';
@@ -20,7 +20,6 @@ export default class SketchblocksEditor
 
     public project: BlocksyProject;
 
-    private readonly testCursorCube: Mesh;
     private readonly testPlaceCube: Mesh;
     private readonly testObjects: Object3D[] = [];
 
@@ -31,6 +30,8 @@ export default class SketchblocksEditor
     private placePosition = new Vector3(0, 0, 0);
 
     public threeLayers: ThreeLayer[] = [];
+
+    private testLine: BufferGeometry;
 
     public constructor(readonly editor2: FlicksyEditor)
     {
@@ -98,11 +99,6 @@ export default class SketchblocksEditor
         this.stageView.setStage(this.project.stages[0]);
 
         // cursor
-        const cursorGeometry = new BoxBufferGeometry(1.1, 1.1, 1.1);
-        const cursorMaterial = new MeshBasicMaterial({ color: 0xffFFFF, opacity: 0.5, transparent: true })
-        this.testCursorCube = new Mesh(cursorGeometry, cursorMaterial);
-        this.scene.add(this.testCursorCube);
-
         const placeGeometry = new BoxBufferGeometry(.3, .3, .3);
         const placeMaterial = new MeshBasicMaterial({ color: 0xffFFFF, opacity: 0.9, transparent: true })
         this.testPlaceCube = new Mesh(placeGeometry, placeMaterial);
@@ -125,15 +121,13 @@ export default class SketchblocksEditor
         document.addEventListener('mousedown', event => this.onDocumentMouseDown(event), false);
         window.addEventListener("blur", event => this.keys.clear());
 
-        // lights
-        /*
-        const ambientLight = new AmbientLight(0x606060);
-        this.scene.add(ambientLight);
-
-        const directionalLight = new DirectionalLight(0xffffff);
-        directionalLight.position.set(1, 0.75, 0.5).normalize();
-        this.scene.add(directionalLight);
-        */
+        // line
+        this.testLine = new BufferGeometry();
+        this.testLine.addAttribute('position', new BufferAttribute( new Float32Array( 4 * 4 ), 3 ) );
+        const material = new LineBasicMaterial( { color: 0x00ffff, depthTest: false, transparent: true } );
+        const line = new Line(this.testLine, material);
+        line.renderOrder = 100;
+        this.editor2.stagesPanel.scene.add(line);
     }
 
     public animate(): void
@@ -191,7 +185,7 @@ export default class SketchblocksEditor
 
                 this.cursorPosition.copy(p).floor().setY(-1);
                 this.placePosition.copy(this.cursorPosition).setY(0);
-                this.testCursorCube.visible = true;
+                this.editor2.stagesPanel.cursor.visible = true;
             }
             else
             {
@@ -201,9 +195,43 @@ export default class SketchblocksEditor
 
                 if (intersect2)
                 {
+                    const id = this.cursorPosition.toArray().join(",");
+                    const block = this.stageView.stage.blocks.get(id)!;
+                    
+                    if (block)
+                    {
+                        const design = this.stageView.stage.blockset.designs[block.designID];
+                        const linePosition = this.testLine.attributes.position as BufferAttribute;
+                        const meshPosition = design.geometry.attributes.position as BufferAttribute;
+                        const face = intersect.face!;
+
+                        const faceID = design.shape.tri2face[intersect.faceIndex!];
+
+                        let indices = design.shape.faces.get(faceID)!; 
+
+                        if (indices)
+                        {
+                            indices = indices.filter((v, i, s) => s.indexOf(v) === i);
+
+                            for (let i = 0; i < 4; ++i)
+                            {
+                                linePosition.copyAt(i, meshPosition, indices[0]);
+                            }
+
+                            for (let i = 0; i < indices.length; ++i)
+                            {
+                                linePosition.copyAt(i, meshPosition, indices[i]);
+                            }
+
+                            linePosition.copyAt(4, meshPosition, indices[0]);
+
+                            this.testLine.applyMatrix(this.stageView.blocks.get(block)!.mesh.matrix);
+                        }
+                    }
+
                     this.cursorPosition.copy(intersect2.object.position).floor();
                     this.placePosition.copy(this.cursorPosition).add(intersect2.face!.normal);
-                    this.testCursorCube.visible = true;
+                    this.editor2.stagesPanel.cursor.visible = true;
                     this.testPlaceCube.visible = true;
                 }
                 else
@@ -214,7 +242,7 @@ export default class SketchblocksEditor
         }
         else
         {
-            this.testCursorCube.visible = false;
+            this.editor2.stagesPanel.cursor.visible = false;
         }
 
         const id = this.placePosition.toArray().join(",");
@@ -223,7 +251,7 @@ export default class SketchblocksEditor
             this.testPlaceCube.visible = false;
         }
 
-        this.testCursorCube.position.copy(this.cursorPosition).addScalar(.5);
+        this.editor2.stagesPanel.cursor.position.copy(this.cursorPosition).addScalar(.5);
         this.testPlaceCube.position.copy(this.placePosition).addScalar(.5);
     }
 
