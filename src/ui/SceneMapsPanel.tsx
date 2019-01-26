@@ -137,7 +137,7 @@ export default class SceneMapsPanel implements Panel
         {   
             if (this.selected)
             {
-                this.editor.openScene(this.selected.element);
+                //this.editor.openStage(this.selected.element);
             }
         });
         utility.buttonClick("scene-map-duplicate-button", () =>
@@ -398,7 +398,7 @@ export default class SceneMapsPanel implements Panel
             }
             else
             {
-                this.editor.openScene(object.element);
+                //this.editor.openStage(object.element);
             }
         }
 

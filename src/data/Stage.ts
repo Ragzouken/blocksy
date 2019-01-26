@@ -52,6 +52,26 @@ export default class Stage
 
         return this;
     }
+
+    public positionToID(position: Vector3): string
+    {
+        return `${position.x},${position.y},${position.z}`;
+    }
+    
+    public getBlock(position: Vector3): Block | undefined
+    {
+        return this.blocks.get(this.positionToID(position));
+    }
+
+    public setBlock(position: Vector3, block: Block)
+    {
+        this.blocks.set(this.positionToID(position), block);
+    }
+
+    public deleteBlock(position: Vector3): boolean
+    {
+        return this.blocks.delete(this.positionToID(position));
+    }
 }
 
 export function makeRandomStage(blockset: Blockset): Stage
@@ -69,7 +89,7 @@ export function makeRandomStage(blockset: Blockset): Stage
                 orientation: randomInt(0, 3),
             }
 
-            stage.blocks.set(block.position.x+","+block.position.y+","+block.position.z, block);
+            stage.setBlock(block.position, block);
         }
     }
 

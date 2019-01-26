@@ -6,12 +6,20 @@ import * as utility from '../tools/utility';
 import Panel from "./Panel";
 import FlicksyEditor from "./FlicksyEditor";
 import ThreeLayer from './ThreeLayer';
-import { WebGLRenderer, Scene, GridHelper, PerspectiveCamera, MOUSE, CanvasTexture, UVMapping, ClampToEdgeWrapping, NearestFilter, BoxBufferGeometry, MeshBasicMaterial, Mesh, DoubleSide } from 'three';
+import { WebGLRenderer, Scene, GridHelper, PerspectiveCamera, MOUSE, CanvasTexture, UVMapping, ClampToEdgeWrapping, NearestFilter, BoxBufferGeometry, MeshBasicMaterial, Mesh, DoubleSide, Vector2, Raycaster, Intersection, Skeleton, Vector3, Object3D, PlaneBufferGeometry, CubeGeometry, BufferAttribute, BufferGeometry, LineBasicMaterial, Line } from 'three';
 import { OrbitControls } from 'three-orbitcontrols-ts';
 import PivotCamera from '../tools/PivotCamera';
 import { MTexture } from '../tools/MTexture';
+import BlockDesign from '../data/BlockDesign';
 
-export default class StagesPanel implements Panel, ThreeLayer
+enum EditorMode
+{
+    None,
+    Block,
+    Face,
+}
+
+export default class StagesEditor implements Panel, ThreeLayer
 {
     private readonly sidebar: HTMLElement;
 
@@ -21,7 +29,25 @@ export default class StagesPanel implements Panel, ThreeLayer
     private readonly orbitControls: OrbitControls;
 
     public readonly scene = new Scene();
-    public readonly cursor: Mesh; // TODO: not public obv...
+    public readonly selectCursor: Mesh; // TODO: not public obv...
+    public readonly createCursor: Mesh;
+
+    private mode = EditorMode.None;
+    private blockPanel = React.createRef<HTMLDivElement>();
+    private facePanel = React.createRef<HTMLDivElement>();
+
+    // raycast colliders
+    private readonly gridCollider: Mesh;
+    private readonly cubeCollider: Mesh;
+
+    // cursors
+    private readonly raycaster = new Raycaster();
+    private readonly intersections: Intersection[] = [];
+
+    public readonly selectPosition = new Vector3(); // TODO: private
+    private readonly createPosition = new Vector3();
+
+    private faceOutline: BufferGeometry;
 
     public constructor(private readonly editor: FlicksyEditor)
     {
@@ -33,6 +59,19 @@ export default class StagesPanel implements Panel, ThreeLayer
                 left-click - place block<br/>
                 right-click drag - rotate camera<br/>
                 ZX - rotate highlighted block
+            </div>
+
+            <div className="line-tabs">
+                <button onClick={() => this.setBlockMode()} title="???">blocks</button>
+                <button onClick={() => this.setFaceMode()} title="???">faces</button>
+            </div>
+
+            <div className="section" ref={this.blockPanel}>
+                <h1>Blocks</h1>
+            </div>
+
+            <div className="section" ref={this.facePanel}>
+                <h1>Faces</h1>
             </div>
         </>;
 
@@ -56,6 +95,13 @@ export default class StagesPanel implements Panel, ThreeLayer
         const gridRenderer = new GridHelper(16, 16);
         this.scene.add(gridRenderer);
 
+        // raycast colliders
+        const invisible = new MeshBasicMaterial({ visible: false });
+        this.gridCollider = new Mesh(new PlaneBufferGeometry(16, 16).rotateX(-Math.PI/2), invisible);
+        this.cubeCollider = new Mesh(new CubeGeometry(1, 1, 1), invisible);
+        this.scene.add(this.gridCollider);
+        this.scene.add(this.cubeCollider);
+
         // cursors
         const cursorTexture = new MTexture(16, 16);
         cursorTexture.fill(utility.rgb2num(255, 255, 255));
@@ -75,12 +121,27 @@ export default class StagesPanel implements Panel, ThreeLayer
                                                        alphaTest: .5, 
                                                        transparent: true,
                                                        side: DoubleSide });
-        this.cursor = new Mesh(cursorGeometry, cursorMaterial);
-        this.scene.add(this.cursor);
+        this.selectCursor = new Mesh(cursorGeometry, cursorMaterial);
+        this.scene.add(this.selectCursor);
+
+        const createGeometry = new BoxBufferGeometry(.3, .3, .3);
+        const createMaterial = new MeshBasicMaterial({ color: 0xffFFFF })
+        this.createCursor = new Mesh(createGeometry, createMaterial);
+        this.scene.add(this.createCursor);
+
+        // face outline
+        this.faceOutline = new BufferGeometry();
+        this.faceOutline.addAttribute('position', new BufferAttribute(new Float32Array(4 * 4), 3));
+        const material = new LineBasicMaterial({ color: 0x00ffff, depthTest: false, transparent: true });
+        const line = new Line(this.faceOutline, material);
+        line.renderOrder = 100;
+        this.scene.add(line);
     }
 
     public show(): void
     {
+        this.setBlockMode();
+
         this.editor.setThree();
         this.editor.sketchblocks.threeLayers.push(this);
         this.sidebar.hidden = false;
@@ -143,13 +204,207 @@ export default class StagesPanel implements Panel, ThreeLayer
         renderer.render(this.scene, this.camera);
     }
 
+    public setBlockMode(): void
+    {
+        this.mode = EditorMode.Block;
+        this.blockPanel.current!.hidden = false;
+        this.facePanel.current!.hidden = true;
+    }
+
+    public setFaceMode(): void
+    {
+        this.mode = EditorMode.Face;
+        this.blockPanel.current!.hidden = true;
+        this.facePanel.current!.hidden = false;
+    }
+
     onMouseDown(event: MouseEvent): boolean 
     {
-        return false;
+        if (this.mode === EditorMode.Block)
+        {
+            if (!this.createCursor.visible) return false;
+
+            const block =  {
+                designID: this.editor.sketchblocks.block,
+                orientation: 0,
+                position: this.createPosition.clone(),
+            };
+
+            this.editor.sketchblocks.stageView.stage.setBlock(block.position, block);
+            this.editor.sketchblocks.stageView.refresh();
+        }
+        else if (this.mode === EditorMode.Face)
+        {
+            if (!this.hoveredDesign) return false;
+
+            this.editor.setActivePanel(this.editor.drawingBoardsPanel);
+            this.editor.drawingBoardsPanel.pickDrawingForScene(drawing =>
+            {
+                if (drawing && drawing.sprite && this.hoveredDesign)
+                {
+                    this.hoveredDesign.setFaceTile(this.hoveredFaceID,
+                                                   this.editor.sketchblocks.stageView.stage.blockset,
+                                                   drawing.tile);
+                }
+
+                this.editor.setThree();
+                this.editor.setActivePanel(this);
+            }, "pick tile");
+        }
+
+        return true;
     }
 
     onMouseUp(event: MouseEvent): boolean
     {
         return false;
+    }
+
+    onMouseMove(event: MouseEvent): boolean
+    {
+        this.selectCursor.visible = false;
+        this.createCursor.visible = false;
+
+        if (this.mode === EditorMode.Block)
+        {
+            return this.updateBlockCursor(event);
+        }
+        else if (this.mode === EditorMode.Face)
+        {
+            return this.updateFaceCursor(event);
+        }
+
+        return false;
+    }
+
+    private raycastFirstFromCamera(screen: Vector2, 
+                                   objects: Object3D[]): Intersection | undefined
+    {
+        this.intersections.length = 0;
+        this.raycaster.setFromCamera(screen, this.camera);
+        this.raycaster.intersectObjects(objects, true, this.intersections);
+
+        return this.intersections.length > 0 ? this.intersections[0] : undefined;
+    }
+
+    private updateBlockCursor(event: MouseEvent): boolean
+    {
+        const sketchblocks = this.editor.sketchblocks;
+
+        const [mx, my] = sketchblocks.getMousePosition(event);
+        const mouse = new Vector2();
+
+        // why???
+        mouse.set(mx * 2 - 1, -my * 2 + 1);
+
+        this.selectCursor.visible = false;
+        this.createCursor.visible = false;
+
+        const intersection = this.raycastFirstFromCamera(mouse, [this.gridCollider, sketchblocks.stageView.group]);
+
+        if (intersection)
+        {
+            if (intersection.object === this.gridCollider)
+            {
+                // show selection under the grid and create new blocks on the
+                // surface of the grid
+                const point = this.scene.worldToLocal(intersection.point);
+
+                this.selectPosition.copy(point).floor().setY(-1);
+                this.createPosition.copy(this.selectPosition).setY(0);
+
+                this.createCursor.visible = true;
+            }
+            else
+            {
+                this.cubeCollider.position.copy(intersection.object.position);
+                
+                const intersect2 = this.raycastFirstFromCamera(mouse, [this.cubeCollider]);
+
+                if (intersect2)
+                {
+                    this.selectPosition.copy(intersect2.object.position).floor();
+                    this.createPosition.copy(this.selectPosition).add(intersect2.face!.normal);
+                    this.selectCursor.visible = true;
+                    this.createCursor.visible = true;
+                }
+            }
+        }
+
+        // hide placement cursor if block is occupied
+        if (sketchblocks.stageView.stage.getBlock(this.createPosition))
+        {
+            this.createCursor.visible = false;
+        }
+
+        this.selectCursor.position.copy(this.selectPosition).addScalar(.5);
+        this.createCursor.position.copy(this.createPosition).addScalar(.5);
+
+        return true;
+    }
+
+    private hoveredDesign: BlockDesign | undefined;
+    private hoveredFaceID: string;
+
+    private updateFaceCursor(event: MouseEvent): boolean
+    {
+        this.hoveredDesign = undefined;
+
+        const sketchblocks = this.editor.sketchblocks;
+
+        const [mx, my] = sketchblocks.getMousePosition(event);
+        const mouse = new Vector2();
+
+        // why???
+        mouse.set(mx * 2 - 1, -my * 2 + 1);
+
+        const intersection = this.raycastFirstFromCamera(mouse, [this.gridCollider, sketchblocks.stageView.group]);
+
+        if (!intersection || intersection.object === this.gridCollider) return true;
+
+        this.cubeCollider.position.copy(intersection.object.position);
+                
+        const intersect2 = this.raycastFirstFromCamera(mouse, [this.cubeCollider]);
+
+        if (intersect2)
+        {
+            const position = intersect2.object.position.clone().floor();
+            const block = sketchblocks.stageView.stage.getBlock(position);
+            
+            if (block)
+            {
+                const design = sketchblocks.stageView.stage.blockset.designs[block.designID];
+                const linePosition = this.faceOutline.attributes.position as BufferAttribute;
+                const meshPosition = design.geometry.attributes.position as BufferAttribute;
+
+                const faceID = design.shape.tri2face[intersection.faceIndex!];
+
+                let indices = design.shape.faces.get(faceID)!; 
+
+                this.hoveredDesign = design;
+                this.hoveredFaceID = faceID;
+
+                if (indices)
+                {
+                    indices = indices.filter((v, i, s) => s.indexOf(v) === i);
+
+                    for (let i = 0; i < 4; ++i)
+                    {
+                        linePosition.copyAt(i, meshPosition, indices[0]);
+                    }
+
+                    for (let i = 0; i < indices.length; ++i)
+                    {
+                        linePosition.copyAt(i, meshPosition, indices[i]);
+                    }
+
+                    linePosition.copyAt(4, meshPosition, indices[0]);
+
+                    this.faceOutline.applyMatrix(sketchblocks.stageView.blocks.get(block)!.mesh.matrix);
+                }
+            }
+        }
+
+        return true;
     }
 }

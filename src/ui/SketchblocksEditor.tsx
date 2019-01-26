@@ -12,7 +12,7 @@ export default class SketchblocksEditor
     public readonly renderer: WebGLRenderer;
     public readonly scene: Scene;
 
-    private readonly stageView: StageView;
+    public readonly stageView: StageView;
 
     public readonly keys = new Map<string, boolean>();
 
@@ -20,18 +20,7 @@ export default class SketchblocksEditor
 
     public project: BlocksyProject;
 
-    private readonly testPlaceCube: Mesh;
-    private readonly testObjects: Object3D[] = [];
-
-    private readonly gridCollider: Mesh;
-    private readonly cubeCollider: Mesh;
-
-    private cursorPosition = new Vector3(0, 0, 0);
-    private placePosition = new Vector3(0, 0, 0);
-
     public threeLayers: ThreeLayer[] = [];
-
-    private testLine: BufferGeometry;
 
     public constructor(readonly editor2: FlicksyEditor)
     {
@@ -45,8 +34,7 @@ export default class SketchblocksEditor
 
             if (event.key === "z")
             {
-                const id = this.cursorPosition.toArray().join(",");
-                const block = this.stageView.stage.blocks.get(id);
+                const block = this.stageView.stage.getBlock(this.editor2.stagesPanel.selectPosition);
 
                 if (block)
                 {
@@ -57,8 +45,7 @@ export default class SketchblocksEditor
 
             if (event.key === "x")
             {
-                const id = this.cursorPosition.toArray().join(",");
-                const block = this.stageView.stage.blocks.get(id);
+                const block = this.stageView.stage.getBlock(this.editor2.stagesPanel.selectPosition);
 
                 if (block)
                 {
@@ -98,36 +85,10 @@ export default class SketchblocksEditor
         this.stageView = new StageView(this.editor2.stagesPanel);
         this.stageView.setStage(this.project.stages[0]);
 
-        // cursor
-        const placeGeometry = new BoxBufferGeometry(.3, .3, .3);
-        const placeMaterial = new MeshBasicMaterial({ color: 0xffFFFF, opacity: 0.9, transparent: true })
-        this.testPlaceCube = new Mesh(placeGeometry, placeMaterial);
-        this.scene.add(this.testPlaceCube);
-
-        // floor
-        const gridColliderGeometry = new PlaneBufferGeometry(16, 16);
-        gridColliderGeometry.rotateX(-Math.PI/2);
-        this.gridCollider = new Mesh(gridColliderGeometry, new MeshBasicMaterial({ visible: false }));
-        this.scene.add(this.gridCollider);
-        this.testObjects.push(this.gridCollider);
-
-        // cube
-        this.cubeCollider = new Mesh(new CubeGeometry(1, 1, 1), 
-                            new MeshBasicMaterial({ visible: false }));
-        this.scene.add(this.cubeCollider);
-
         // mouse
-        document.addEventListener('mousemove', event => this.updateCursor(event), false);
+        document.addEventListener('mousemove', event => this.onDocumentMouseMove(event), false);
         document.addEventListener('mousedown', event => this.onDocumentMouseDown(event), false);
         window.addEventListener("blur", event => this.keys.clear());
-
-        // line
-        this.testLine = new BufferGeometry();
-        this.testLine.addAttribute('position', new BufferAttribute( new Float32Array( 4 * 4 ), 3 ) );
-        const material = new LineBasicMaterial( { color: 0x00ffff, depthTest: false, transparent: true } );
-        const line = new Line(this.testLine, material);
-        line.renderOrder = 100;
-        this.editor2.stagesPanel.scene.add(line);
     }
 
     public animate(): void
@@ -160,101 +121,6 @@ export default class SketchblocksEditor
         //this.renderer.setViewport(10, 10, 320, 240);
     }
 
-    private updateCursor(event: MouseEvent): void
-    {
-        if (event.target !== this.renderer.domElement) return;
-
-        event.preventDefault();
-        const [mx, my] = this.getMousePosition(event);
-        const mouse = new Vector2();
-        //event.target.width
-        mouse.set(mx * 2 - 1, -my * 2 + 1);
-
-        const raycaster = new Raycaster();
-        raycaster.setFromCamera(mouse, this.editor2.stagesPanel.camera);
-
-        var intersects = raycaster.intersectObjects([this.gridCollider, this.stageView.group], true);
-
-        if (intersects.length > 0)
-        {
-            var intersect = intersects[ 0 ];
-
-            if (intersect.object === this.gridCollider)
-            {
-                const p = this.scene.worldToLocal(intersect.point);
-
-                this.cursorPosition.copy(p).floor().setY(-1);
-                this.placePosition.copy(this.cursorPosition).setY(0);
-                this.editor2.stagesPanel.cursor.visible = true;
-            }
-            else
-            {
-                this.cubeCollider.position.copy(intersect.object.position);
-                const intersects2 = raycaster.intersectObject(this.cubeCollider);
-                const intersect2 = intersects2[0];
-
-                if (intersect2)
-                {
-                    const id = this.cursorPosition.toArray().join(",");
-                    const block = this.stageView.stage.blocks.get(id)!;
-                    
-                    if (block)
-                    {
-                        const design = this.stageView.stage.blockset.designs[block.designID];
-                        const linePosition = this.testLine.attributes.position as BufferAttribute;
-                        const meshPosition = design.geometry.attributes.position as BufferAttribute;
-                        const face = intersect.face!;
-
-                        const faceID = design.shape.tri2face[intersect.faceIndex!];
-
-                        let indices = design.shape.faces.get(faceID)!; 
-
-                        if (indices)
-                        {
-                            indices = indices.filter((v, i, s) => s.indexOf(v) === i);
-
-                            for (let i = 0; i < 4; ++i)
-                            {
-                                linePosition.copyAt(i, meshPosition, indices[0]);
-                            }
-
-                            for (let i = 0; i < indices.length; ++i)
-                            {
-                                linePosition.copyAt(i, meshPosition, indices[i]);
-                            }
-
-                            linePosition.copyAt(4, meshPosition, indices[0]);
-
-                            this.testLine.applyMatrix(this.stageView.blocks.get(block)!.mesh.matrix);
-                        }
-                    }
-
-                    this.cursorPosition.copy(intersect2.object.position).floor();
-                    this.placePosition.copy(this.cursorPosition).add(intersect2.face!.normal);
-                    this.editor2.stagesPanel.cursor.visible = true;
-                    this.testPlaceCube.visible = true;
-                }
-                else
-                {
-                    this.testPlaceCube.visible = false;
-                }
-            }
-        }
-        else
-        {
-            this.editor2.stagesPanel.cursor.visible = false;
-        }
-
-        const id = this.placePosition.toArray().join(",");
-        if (this.stageView.stage.blocks.get(id))
-        {
-            this.testPlaceCube.visible = false;
-        }
-
-        this.editor2.stagesPanel.cursor.position.copy(this.cursorPosition).addScalar(.5);
-        this.testPlaceCube.position.copy(this.placePosition).addScalar(.5);
-    }
-
     public getMousePosition(event: any): [number, number]
     {
         // e = Mouse click event.
@@ -263,6 +129,22 @@ export default class SketchblocksEditor
         var y = event.clientY - rect.top;  //y position within the element.
 
         return [x / rect.width, y / rect.height];
+    }
+
+    private onDocumentMouseMove(event: MouseEvent)
+    {
+        if (event.target !== this.renderer.domElement) return;
+
+        for (let i = this.threeLayers.length - 1; i >= 0; --i)
+        {
+            const cancel = this.threeLayers[i].onMouseMove(event);
+
+            if (cancel) 
+            {
+                event.preventDefault();
+                return;
+            }
+        }
     }
 
     private onDocumentMouseDown(event: MouseEvent) 
@@ -278,18 +160,5 @@ export default class SketchblocksEditor
                 return;
             }
         }
-
-        if (!this.testPlaceCube.visible) return;
-
-        event.preventDefault();
-
-        const id = this.placePosition.toArray().join(",");
-        const block =  {
-            designID: this.block,
-            orientation: 0,
-            position: this.placePosition.clone(),
-        };
-        this.stageView.stage.blocks.set(id, block);
-        this.stageView.refresh();
     }
 }

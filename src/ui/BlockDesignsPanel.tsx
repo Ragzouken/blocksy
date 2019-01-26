@@ -103,6 +103,11 @@ export default class BlockDesignsPanel implements Panel, ThreeLayer
         return false;
     }
 
+    public onMouseMove(event: MouseEvent): boolean
+    {
+        return false;
+    }
+
     public refresh(): void
     {
         this.meshes.forEach(mesh => this.group.remove(mesh));

@@ -9,11 +9,11 @@ import PickerPanel from './PickerPanel';
 import ProjectsPanel from './ProjectsPanel';
 import PublishPanel from './PublishPanel';
 import SceneMapsPanel from './SceneMapsPanel';
-import ScenesPanel from './ScenesPanel';
 import SketchblocksEditor from './SketchblocksEditor';
-import StagesPanel from './StagesEditor';
+import StagesEditor from './StagesEditor';
 import BlockDesignsPanel from './BlockDesignsPanel';
 import BlocksyProject from '../data/BlocksyProject';
+import Stage from '../data/Stage';
 
 export default class FlicksyEditor
 {
@@ -22,10 +22,9 @@ export default class FlicksyEditor
     public readonly projectsPanel: ProjectsPanel;
     public readonly publishPanel: PublishPanel;
     public readonly drawingBoardsPanel: DrawingBoardsPanel;
-    public readonly scenesPanel: ScenesPanel;
     public readonly sceneMapsPanel: SceneMapsPanel;
     public readonly pickerPanel: PickerPanel;
-    public readonly stagesPanel: StagesPanel;
+    public readonly stagesPanel: StagesEditor;
     public readonly designsPanel: BlockDesignsPanel;
 
     public readonly sketchblocks: SketchblocksEditor;
@@ -63,10 +62,9 @@ export default class FlicksyEditor
         this.projectsPanel = new ProjectsPanel(this);
         this.publishPanel = new PublishPanel(this);
         this.drawingBoardsPanel = new DrawingBoardsPanel(this);
-        this.scenesPanel = new ScenesPanel(this);
         this.sceneMapsPanel = new SceneMapsPanel(this);
         this.pickerPanel = new PickerPanel(this);
-        this.stagesPanel = new StagesPanel(this);
+        this.stagesPanel = new StagesEditor(this);
         this.designsPanel = new BlockDesignsPanel(this);
 
         this.sketchblocks = new SketchblocksEditor(this);
@@ -80,7 +78,6 @@ export default class FlicksyEditor
         utility.buttonClick("info-tab-button",       () => this.setActivePanel(this.projectsPanel));
         utility.buttonClick("publish-tab-button",    () => this.setActivePanel(this.publishPanel));
         utility.buttonClick("drawing-tab-button",    () => this.setActivePanel(this.drawingBoardsPanel));
-        utility.buttonClick("scene-tab-button",      () => this.setActivePanel(this.scenesPanel));
         utility.buttonClick("scene-maps-tab-button", () => this.setActivePanel(this.sceneMapsPanel));
 
         utility.getElement("playtest-button").hidden = true;
@@ -115,7 +112,6 @@ export default class FlicksyEditor
         this.pixi.stage.on("pointermove", (event: Pixi.interaction.InteractionEvent) => 
         {
             this.drawingBoardsPanel.updateDragging(event);
-            this.scenesPanel.updateDragging(event);
         });
     }
 
@@ -130,9 +126,6 @@ export default class FlicksyEditor
         // default to the first drawing board and first palette colour
         this.drawingBoardsPanel.setDrawingBoard(project.drawingBoards[0]);
         this.drawingBoardsPanel.setBrushColor(1);
-        
-        // default to the first scene
-        this.scenesPanel.setScene(project.scenes[0]);
 
         // first scene map
         this.sceneMapsPanel.setMap(project.sceneBoards[0]);
@@ -149,6 +142,7 @@ export default class FlicksyEditor
                 tile1.drawing.sprite = {x: x * 16, y: y * 16, w:16, h:16};
                 tile1.position.x = x * 20;
                 tile1.position.y = y * 20;
+                tile1.drawing.tile = (7 - y) * 8 + x;
             }
         }
 
@@ -163,7 +157,6 @@ export default class FlicksyEditor
         this.projectsPanel.refresh();
         this.publishPanel.refresh();
         this.drawingBoardsPanel.refresh();
-        this.scenesPanel.refresh();
         this.sceneMapsPanel.refresh();
 
         this.stagesPanel.refresh();
@@ -184,10 +177,12 @@ export default class FlicksyEditor
         this.returnToEditorButton.hidden = !escapable;
         this.sidebarContainer.hidden = true;
 
+        /*
         this.setActivePanel(this.scenesPanel);
 
         this.scenesPanel.setScene(this.project.getSceneByUUID(this.project.startScene)!);
         this.scenesPanel.setPlayTestMode(true);
+        */
     }
 
     /**
@@ -197,13 +192,13 @@ export default class FlicksyEditor
     {
         this.returnToEditorButton.hidden = true;
         this.sidebarContainer.hidden = false;
-        this.scenesPanel.setPlayTestMode(false);
+        //this.scenesPanel.setPlayTestMode(false);
     }
 
-    public openScene(scene: Scene): void
+    public openStage(stage: Stage): void
     {
-        this.scenesPanel.setScene(scene);
-        this.setActivePanel(this.scenesPanel);
+        //this.scenesPanel.setScene(scene);
+        //this.setActivePanel(this.scenesPanel);
     }
 
     public openSceneMap(selected: Scene | undefined): void
@@ -231,7 +226,6 @@ export default class FlicksyEditor
 
         this.projectsPanel.hide();
         this.drawingBoardsPanel.hide();
-        this.scenesPanel.hide();
         this.sceneMapsPanel.hide();
         this.publishPanel.hide();
         this.pickerPanel.hide();
@@ -254,7 +248,7 @@ export default class FlicksyEditor
      * Hide all sidebar panels and then show the given one.
      * @param panel The sidebar panel that should be shown
      */
-    private setActivePanel(panel: Panel): void
+    public setActivePanel(panel: Panel): void
     {
         this.hideAll();
         panel.show();

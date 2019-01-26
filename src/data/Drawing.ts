@@ -17,6 +17,7 @@ export class Drawing implements FlicksyData<Drawing, DrawingData>
 
     public texture: MTexture;
     public sprite: {x: number, y: number, w: number, h: number} | undefined;
+    public tile = 0;
 
     public get width(): number { return this.sprite ? this.sprite.w : this.texture.data.width; }
     public get height(): number { return this.sprite ? this.sprite.h : this.texture.data.height; }

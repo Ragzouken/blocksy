@@ -1,7 +1,7 @@
 import Stage, { Block } from "../data/Stage";
 import ModelViewMapping, { View } from "../tools/ModelViewMapping";
 import { Mesh, Vector3, Group } from "three";
-import StagesPanel from "./StagesEditor";
+import StagesEditor from "./StagesEditor";
 
 class BlockView implements View<Block>
 {
@@ -41,7 +41,7 @@ export default class StageView
 
     public readonly group = new Group();
 
-    public constructor(readonly panel: StagesPanel)
+    public constructor(readonly panel: StagesEditor)
     {
         this.blocks = new ModelViewMapping<Block, BlockView>(() => new BlockView(this),
                                                              (view, active) => view.setActive(active));

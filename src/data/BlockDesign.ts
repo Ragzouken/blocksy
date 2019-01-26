@@ -75,5 +75,7 @@ export default class BlockDesign
             dest.setX(index, lerp(xmin, xmax, base[index * 2 + 0]));
             dest.setY(index, lerp(ymin, ymax, base[index * 2 + 1]));
         }
+
+        dest.needsUpdate = true;
     }
 }
