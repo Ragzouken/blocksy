@@ -11,6 +11,47 @@ import { OrbitControls } from 'three-orbitcontrols-ts';
 import PivotCamera from '../tools/PivotCamera';
 import { MTexture } from '../tools/MTexture';
 import BlockDesign from '../data/BlockDesign';
+import { rotatedCW } from '../tools/SquareOrientation';
+
+interface SelectedFaceProps
+{
+    editor: StagesEditor;
+}
+
+interface SelectedFaceState
+{
+    design?: BlockDesign;
+    faceID?: string;
+}
+
+class SelectedFacePanel extends React.Component<SelectedFaceProps, SelectedFaceState>
+{
+    constructor(props: SelectedFaceProps)
+    {
+        super(props);
+
+        this.state = {};
+    }
+
+    public render()
+    {
+        if (!this.state.design) return null;
+
+        const design = this.state.design;
+        const faceID = this.state.faceID!;
+
+        return <div className="section">
+            <h1>{design.name}</h1>
+            <p>{faceID}</p>
+            <button onClick={() => this.props.editor.startPickBlockDesignFace(design, faceID)}>
+                change face
+            </button><br />
+            <button onClick={() => this.props.editor.rotateBlockDesignFace(design, faceID)}>
+                rotate face
+            </button>
+        </div>
+    }
+}
 
 enum EditorMode
 {
@@ -49,16 +90,21 @@ export default class StagesEditor implements Panel, ThreeLayer
 
     private faceOutline: BufferGeometry;
 
+    private testFaceComponent = React.createRef<SelectedFacePanel>();
+
     public constructor(private readonly editor: FlicksyEditor)
     {
         const sidebar = <>
             <div className="section">
                 <h1>stages</h1>
                 <p>build with blocks</p>
-                <h2>controls</h2>
+                <h2>block controls</h2>
                 left-click - place block<br/>
+                middle-click - delete block<br/>
                 right-click drag - rotate camera<br/>
                 ZX - rotate highlighted block
+                <h2>face controls</h2>
+                left-click - select face<br/>
             </div>
 
             <div className="line-tabs">
@@ -70,9 +116,7 @@ export default class StagesEditor implements Panel, ThreeLayer
                 <h1>Blocks</h1>
             </div>
 
-            <div className="section" ref={this.facePanel}>
-                <h1>Faces</h1>
-            </div>
+            <SelectedFacePanel ref={this.testFaceComponent} editor={this}/>
         </>;
 
         const root = utility.getElement("sidebar");
@@ -140,7 +184,7 @@ export default class StagesEditor implements Panel, ThreeLayer
 
     public show(): void
     {
-        this.setBlockMode();
+        if (this.mode === EditorMode.None) this.setBlockMode();
 
         this.editor.setThree();
         this.editor.sketchblocks.threeLayers.push(this);
@@ -208,14 +252,22 @@ export default class StagesEditor implements Panel, ThreeLayer
     {
         this.mode = EditorMode.Block;
         this.blockPanel.current!.hidden = false;
-        this.facePanel.current!.hidden = true;
+        //this.facePanel.current!.hidden = true;
+
+        this.testFaceComponent.current!.setState({
+            design: undefined,
+        });
     }
 
     public setFaceMode(): void
     {
         this.mode = EditorMode.Face;
         this.blockPanel.current!.hidden = true;
-        this.facePanel.current!.hidden = false;
+        //this.facePanel.current!.hidden = false;
+
+        this.testFaceComponent.current!.setState({
+            design: undefined,
+        });
     }
 
     onMouseDown(event: MouseEvent): boolean 
@@ -224,32 +276,33 @@ export default class StagesEditor implements Panel, ThreeLayer
         {
             if (!this.createCursor.visible) return false;
 
-            const block =  {
-                designID: this.editor.sketchblocks.block,
-                orientation: 0,
-                position: this.createPosition.clone(),
-            };
+            const stage = this.editor.sketchblocks.stageView.stage;
 
-            this.editor.sketchblocks.stageView.stage.setBlock(block.position, block);
+            if (event.button === 0)
+            {
+                const block =  {
+                    designID: this.editor.sketchblocks.block,
+                    orientation: 0,
+                    position: this.createPosition.clone(),
+                };
+    
+                stage.setBlock(block.position, block);
+            }
+            else if (event.button === 1)
+            {
+                stage.deleteBlock(this.selectPosition);
+            }
+            
             this.editor.sketchblocks.stageView.refresh();
         }
         else if (this.mode === EditorMode.Face)
         {
             if (!this.hoveredDesign) return false;
 
-            this.editor.setActivePanel(this.editor.drawingBoardsPanel);
-            this.editor.drawingBoardsPanel.pickDrawingForScene(drawing =>
-            {
-                if (drawing && drawing.sprite && this.hoveredDesign)
-                {
-                    this.hoveredDesign.setFaceTile(this.hoveredFaceID,
-                                                   this.editor.sketchblocks.stageView.stage.blockset,
-                                                   drawing.tile);
-                }
-
-                this.editor.setThree();
-                this.editor.setActivePanel(this);
-            }, "pick tile");
+            this.testFaceComponent.current!.setState({
+                design: this.hoveredDesign,
+                faceID: this.hoveredFaceID,
+            });
         }
 
         return true;
@@ -406,5 +459,33 @@ export default class StagesEditor implements Panel, ThreeLayer
         }
 
         return true;
+    }
+
+    public startPickBlockDesignFace(design: BlockDesign, faceID: string): void
+    {
+        this.editor.setActivePanel(this.editor.drawingBoardsPanel);
+        this.editor.drawingBoardsPanel.pickDrawingForScene(drawing =>
+        {
+            if (drawing && drawing.sprite && design)
+            {
+                design.setFaceTile(faceID,
+                                   this.editor.sketchblocks.stageView.stage.blockset,
+                                   drawing.tile, 
+                                   design.faces.get(faceID)![1]);
+            }
+
+            this.editor.setThree();
+            this.editor.setActivePanel(this);
+        }, "pick tile");
+    }
+
+    public rotateBlockDesignFace(design: BlockDesign, faceID: string): void
+    {
+        const face = design.faces.get(faceID)!;
+
+        design.setFaceTile(faceID,
+                           this.editor.sketchblocks.stageView.stage.blockset,
+                           face[0], 
+                           rotatedCW[face[1]]);
     }
 }

@@ -51,12 +51,12 @@ export function createBlankProject(): BlocksyProject
         const cube = new BlockDesign();
         cube.name = `Cube ${i}`;
         cube.setShape(project.shapes[0]);
-        cube.setFaceTile("front",  blockset, randomInt(0, 16));
-        cube.setFaceTile("back",   blockset, randomInt(0, 16));
-        cube.setFaceTile("left",   blockset, randomInt(0, 16));
-        cube.setFaceTile("right",  blockset, randomInt(0, 16));
-        cube.setFaceTile("top",    blockset, randomInt(0, 16));
-        cube.setFaceTile("bottom", blockset, randomInt(0, 16));
+        cube.setFaceTile("front",  blockset, randomInt(0, 16), randomInt(0, 8));
+        cube.setFaceTile("back",   blockset, randomInt(0, 16), randomInt(0, 8));
+        cube.setFaceTile("left",   blockset, randomInt(0, 16), randomInt(0, 8));
+        cube.setFaceTile("right",  blockset, randomInt(0, 16), randomInt(0, 8));
+        cube.setFaceTile("top",    blockset, randomInt(0, 16), randomInt(0, 8));
+        cube.setFaceTile("bottom", blockset, randomInt(0, 16), randomInt(0, 8));
         
         blockset.designs.push(cube);
     }
@@ -66,11 +66,11 @@ export function createBlankProject(): BlocksyProject
         const ramp = new BlockDesign();
         ramp.name = `Ramp ${i}`;
         ramp.setShape(project.shapes[1]);
-        ramp.setFaceTile("slope",  blockset, randomInt(0, 16));
-        ramp.setFaceTile("back",   blockset, randomInt(0, 16));
-        ramp.setFaceTile("left",   blockset, randomInt(0, 16));
-        ramp.setFaceTile("right",  blockset, randomInt(0, 16));
-        ramp.setFaceTile("bottom", blockset, randomInt(0, 16));
+        ramp.setFaceTile("slope",  blockset, randomInt(0, 16), randomInt(0, 8));
+        ramp.setFaceTile("back",   blockset, randomInt(0, 16), randomInt(0, 8));
+        ramp.setFaceTile("left",   blockset, randomInt(0, 16), randomInt(0, 8));
+        ramp.setFaceTile("right",  blockset, randomInt(0, 16), randomInt(0, 8));
+        ramp.setFaceTile("bottom", blockset, randomInt(0, 16), randomInt(0, 8));
         
         blockset.designs.push(ramp);
     }

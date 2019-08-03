@@ -3,6 +3,7 @@ import BlockDesign from "./BlockDesign";
 import BlockShape from "./BlockShape";
 import { MTexture } from "../tools/MTexture";
 import { MeshBasicMaterial, CanvasTexture, ClampToEdgeWrapping, NearestFilter } from "three";
+import { SquareOrientation } from "../tools/SquareOrientation";
 
 export default class Blockset
 {

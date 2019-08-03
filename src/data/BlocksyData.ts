@@ -1,3 +1,5 @@
+import { SquareOrientation } from "../tools/SquareOrientation";
+
 export type Vector3Data = [number, number, number];
 export type Vector2Data = [number, number];
 
@@ -26,12 +28,14 @@ export interface BlockShapeData
     faces: BlockShapeFaceData[];
 }
 
+export type BlockDesignFaceData = [string, number, number];
+
 export interface BlockDesignData
 {
     name: string;
 
     shape: string;
-    faces: [string, number][];
+    faces: BlockDesignFaceData[];
 }
 
 export interface TextureData

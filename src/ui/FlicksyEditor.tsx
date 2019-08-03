@@ -14,6 +14,7 @@ import StagesEditor from './StagesEditor';
 import BlockDesignsPanel from './BlockDesignsPanel';
 import BlocksyProject from '../data/BlocksyProject';
 import Stage from '../data/Stage';
+import { MTexture } from '../tools/MTexture';
 
 export default class FlicksyEditor
 {
@@ -130,15 +131,12 @@ export default class FlicksyEditor
         // first scene map
         this.sceneMapsPanel.setMap(project.sceneBoards[0]);
 
-        const drawing = this.drawingBoardsPanel.createNewDrawing(4 * 16, 4 * 16);
-        drawing.drawing.texture = this.sketchblocks.project.blocksets[0].texture;
-
         for (let y = 0; y < 8; ++y)
         {
             for (let x = 0; x < 8; ++x)
             {
                 const tile1 = this.drawingBoardsPanel.createNewDrawing(16, 16);
-                tile1.drawing.texture = drawing.drawing.texture;
+                tile1.drawing.texture = this.sketchblocks.project.blocksets[0].texture;
                 tile1.drawing.sprite = {x: x * 16, y: y * 16, w:16, h:16};
                 tile1.position.x = x * 20;
                 tile1.position.y = y * 20;

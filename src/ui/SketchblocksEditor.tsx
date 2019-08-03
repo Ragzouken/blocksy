@@ -150,7 +150,6 @@ export default class SketchblocksEditor
     private onDocumentMouseDown(event: MouseEvent) 
     {
         if (event.target !== this.renderer.domElement) return;
-        if (event.button !== 0) return;
 
         for (let i = this.threeLayers.length - 1; i >= 0; --i)
         {
